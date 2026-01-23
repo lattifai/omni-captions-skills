@@ -2,7 +2,7 @@
 
 Claude Code 技能插件，用于 YouTube 和本地音视频的转录与字幕翻译。
 
-> **致谢**: Gemini 转录提示词来自 [@dotey](https://x.com/dotey) 的 [推文](https://x.com/dotey/status/1971810075867046131) 并做了[少许修改]()。
+> **声明致谢**: Gemini 转录提示词来自 [@dotey](https://x.com/dotey) 的 [推文](https://x.com/dotey/status/1971810075867046131) 并做了[少许修改](https://github.com/lattifai/omni-captions-skills/commit/3f85975058aaad3c83254d213dbd4136364a2073)。
 
 ## 安装
 

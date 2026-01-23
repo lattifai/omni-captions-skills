@@ -1,8 +1,10 @@
 # omni-captions-skills
 
+[中文文档](README_zh.md)
+
 Claude Code skills for YouTube or Local media file transcription and Caption translation using AI APIs.
 
-> **Credits**: Gemini Transcription prompt inspired by [@dotey](https://x.com/dotey)'s [tweet](https://x.com/dotey/status/1971810075867046131)
+> **Credits**: Gemini transcription prompt inspired by [@dotey](https://x.com/dotey)'s [tweet](https://x.com/dotey/status/1971810075867046131), with [minor modifications](https://github.com/lattifai/omni-captions-skills/commit/3f85975058aaad3c83254d213dbd4136364a2073).
 
 ## Install
 
