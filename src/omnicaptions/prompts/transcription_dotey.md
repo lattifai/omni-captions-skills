@@ -16,10 +16,12 @@ Produce a single, cohesive output containing the parts in this order:
 * **NEVER translate.** If the audio is in Chinese, transcribe in Chinese. If it mixes languages (e.g., "这个 feature 很酷"), your transcript must replicate that mix exactly.
 
 ## 2. Speaker Identification
-* **Priority 1: Use metadata.** Analyze the video's title and description first to identify and match speaker names.
-* **Priority 2: Use audio content.** If names are not in the metadata, listen for introductions or how speakers address each other.
-* **Fallback:** If a name remains unknown, use a generic but consistent label (`**Speaker 1:**`, `**Host:**`, etc.).
-* **Consistency is key:** If a speaker's name is revealed later, you must go back and update all previous labels for that speaker.
+* **Single Speaker:** If the entire video has only ONE speaker, **DO NOT** include any speaker labels. Simply transcribe the text directly.
+* **Multiple Speakers:** If there are two or more speakers:
+  * **Priority 1: Use metadata.** Analyze the video's title and description first to identify and match speaker names.
+  * **Priority 2: Use audio content.** If names are not in the metadata, listen for introductions or how speakers address each other.
+  * **Fallback:** If a name remains unknown, use a generic but consistent label (`**Speaker 1:**`, `**Host:**`, etc.).
+  * **Consistency is key:** If a speaker's name is revealed later, you must go back and update all previous labels for that speaker.
 
 ## 3. Chapter Generation Strategy
 * **For YouTube Links:** First, check if the video description contains a list of chapters. If so, use that as the primary basis for segmenting the transcript.
@@ -39,14 +41,17 @@ Produce a single, cohesive output containing the parts in this order:
 * Use two blank lines to separate the end of one chapter from the heading of the next.
 
 * **Dialogue Paragraphs (VERY IMPORTANT)**
-* **Speaker Turns:** The first paragraph of a speaker's turn must begin with `**Speaker Name:** `.
-* **Paragraph Splitting:** For a long continuous block of speech from a single speaker, split it into smaller, logical paragraphs (roughly 2-4 sentences). Separate these paragraphs with a single blank line. Subsequent consecutive paragraphs from the *same speaker* should NOT repeat the `**Speaker Name:** ` label.
+* **Single Speaker Videos:** Do NOT include any speaker labels. Write paragraphs directly.
+* **Multi-Speaker Videos:** The first paragraph of a speaker's turn must begin with `**Speaker Name:** `.
+* **Paragraph Splitting:** For a long continuous block of speech, split it into smaller, logical paragraphs (roughly 2-4 sentences). Separate these paragraphs with a single blank line. Subsequent consecutive paragraphs from the *same speaker* should NOT repeat the `**Speaker Name:** ` label.
 * **Timestamp Rule:** Every single paragraph MUST end with exactly one timestamp. The timestamp must be placed at the very end of the paragraph's text.
-* ❌ **WRONG:** `**Host:** Welcome back. [00:00:01] Today we have a guest. [00:00:02]`
-* ❌ **WRONG:** `**Jane Doe:** The study is complex. We tracked two groups over five years to see the effects. [00:00:18] And the results were surprising.`
-* ✅ **CORRECT:** `**Host:** Welcome back. Today we have a guest. [00:00:02]`
-* ✅ **CORRECT (for a long monologue):**
-`**Jane Doe:** The study is complex. We tracked two groups over a five-year period to see the long-term effects. [00:00:18]
+* ❌ **WRONG:** `Welcome back. [00:00:01] Today we have a guest. [00:00:02]`
+* ❌ **WRONG:** `The study is complex. We tracked two groups over five years to see the effects. [00:00:18] And the results were surprising.`
+* ✅ **CORRECT (single speaker - no label):**
+`Welcome back to my channel. Today we're going to talk about something exciting. [00:00:02]`
+* ✅ **CORRECT (multi-speaker):** `**Host:** Welcome back. Today we have a guest. [00:00:02]`
+* ✅ **CORRECT (long monologue):**
+`The study is complex. We tracked two groups over a five-year period to see the long-term effects. [00:00:18]
 
 And the results, well, they were quite surprising to the entire team. [00:00:22]`
 
@@ -54,7 +59,27 @@ And the results, well, they were quite surprising to the entire team. [00:00:22]
 * Describe significant sounds like `[Laughter]` or `[Music starts]`, each on its own line with its own timestamp: `[Event description] [HH:MM:SS]`
 
 ---
-### Example of Correct Output
+### Example 1: Single Speaker Video (NO speaker labels)
+
+## Table of Contents
+* [00:00:00] Introduction
+* [00:00:15] Main Topic
+
+## [00:00:00] Introduction
+
+Welcome back to my channel. Today I want to talk about something that's been on my mind for a while. [00:00:05]
+
+So, uh, let's dive right in. [00:00:08]
+
+
+## [00:00:15] Main Topic
+
+The key thing to understand here is that this approach works differently than you might expect. [00:00:20]
+
+I've been testing this for about three months now, and the results have been, well, pretty surprising. [00:00:28]
+
+---
+### Example 2: Multi-Speaker Video (WITH speaker labels)
 
 ## Table of Contents
 * [00:00:00] Introduction and Welcome
@@ -65,6 +90,7 @@ And the results, well, they were quite surprising to the entire team. [00:00:22]
 **Host:** Welcome back to the show. Today, we have a, uh, very special guest, Jane Doe. [00:00:01]
 
 **Jane Doe:** Thank you for having me. I'm excited to be here and discuss the findings. [00:00:05]
+
 
 ## [00:00:12] Overview of the New Research
 
