@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omnicaptions"
+version = "0.1.0"
+description = "AI-powered media transcription with Claude Code skills"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "LattifAI" }
+]
+keywords = ["transcription", "captions", "youtube", "claude-code", "skills"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+dependencies = [
+    "google-genai>=1.0.0",
+    "lattifai-captions>=0.1.0",
+    "yt-dlp>=2025.12.08",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+laicut = [
+    "lattifai-core",
+    "lattifai[alignment-flash]",
+]
+all = [
+    "omnicaptions[dev,laicut]",
+]
+
+[project.scripts]
+omnicaptions = "omnicaptions.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/omnicaptions"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

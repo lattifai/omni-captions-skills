@@ -1,0 +1,262 @@
+---
+name: omnicaptions-translate
+description: Use when translating subtitles/captions to another language. Supports bilingual output and context-aware translation. Default uses Claude native, Gemini API optional.
+allowed-tools: Bash(omnicaptions:*), Read, Write, Glob
+---
+
+# Caption Translation
+
+**Default: Claude native translation** (no API key needed)
+
+Use Gemini API only when user explicitly requests it.
+
+## Default Workflow (Claude)
+
+1. Read the subtitle file
+2. Translate using Claude's native ability
+3. Write output with `_Claude_{lang}` suffix
+
+## Gemini API (Optional)
+
+Use CLI when user requests Gemini:
+
+```bash
+omnicaptions translate input.srt -l zh --bilingual
+```
+
+Output: `input_Gemini_zh.srt`
+
+## When to Use
+
+- Translate SRT/VTT/ASS to another language
+- Generate bilingual subtitles (original + translation)
+- Translate YouTube video transcripts
+- Need context-aware translation (not line-by-line)
+
+## When NOT to Use
+
+- Need transcription (use `/omnicaptions:transcribe`)
+- Just format conversion without translation (use `/omnicaptions:convert`)
+
+## Setup
+
+```bash
+pip install $PLUGIN_DIR/packages/lattifai_core-*.tar.gz \
+  "$(ls $PLUGIN_DIR/packages/lattifai_captions-*.tar.gz)[splitting]" \
+  $PLUGIN_DIR/packages/omnicaptions-*.tar.gz
+```
+
+## API Key
+
+Priority: `GEMINI_API_KEY` env → `.env` file → `~/.config/omnicaptions/config.json`
+
+If not set, ask user: `Please enter your Gemini API key (get from https://aistudio.google.com/apikey):`
+
+Then run with `-k <key>`. Key will be saved to config file automatically.
+
+## Context-Aware Translation
+
+LLM-based translation is superior to traditional machine translation because it understands context across multiple lines:
+
+### Why Context Matters
+
+| Approach | Problem | Result |
+|----------|---------|--------|
+| Line-by-line | No context | Robotic, disconnected translations |
+| **Batch + Context** | Sees surrounding lines | Natural, coherent dialogue |
+
+### How It Works
+
+```
+┌─────────────────────────────────────────┐
+│  Batch size: 30 lines                   │
+│  Context: 5 lines before/after          │
+├─────────────────────────────────────────┤
+│  [5 previous lines] → context           │
+│  [30 current lines] → translate         │
+│  [5 next lines]     → preview           │
+└─────────────────────────────────────────┘
+```
+
+Benefits:
+- **Speaker continuity** - maintains character voice
+- **Split sentences** - handles dialogue spanning multiple lines
+- **Idioms & culture** - adapts cultural references naturally
+- **Pronoun resolution** - correct he/she/they based on context
+
+## Advanced Features
+
+### Bilingual Output
+
+```bash
+# Original + Translation (for language learning)
+omnicaptions translate input.srt -l zh --bilingual
+```
+
+Output example:
+```srt
+1
+00:00:01,000 --> 00:00:03,500
+Welcome to the show.
+欢迎来到节目。
+
+2
+00:00:03,500 --> 00:00:06,000
+Thank you for having me.
+感谢邀请我。
+```
+
+### Custom Glossary (Coming Soon)
+
+For domain-specific or branded content:
+
+```bash
+# Use glossary for consistent terminology
+omnicaptions translate input.srt -l zh --glossary terms.json
+```
+
+Glossary format:
+```json
+{
+  "API": "接口",
+  "Token": "令牌",
+  "Machine Learning": "机器学习"
+}
+```
+
+Benefits:
+- **Terminology consistency** - "one term, one translation"
+- **Brand compliance** - use official product names
+- **Domain accuracy** - medical, legal, technical terms
+
+## Best Practices
+
+### 1. Provide Context for Better Quality
+
+For specialized content, use custom prompts:
+
+```python
+from omnicaptions import GeminiCaption
+
+gc = GeminiCaption()
+gc._translation_prompt = """
+You are translating subtitles for a medical documentary.
+Use formal Chinese medical terminology.
+Glossary: {glossary}
+"""
+gc.translate("input.srt", "output.srt", "zh")
+```
+
+### 2. Choose the Right Model
+
+| Model | Best For |
+|-------|----------|
+| `gemini-3-flash-preview` | Fast, everyday content |
+| `gemini-3-pro-preview` | Complex, nuanced content |
+
+### 3. Review Bilingual Output
+
+Bilingual subtitles let viewers verify translation quality - ideal for:
+- Language learners
+- Quality assurance
+- Accessibility
+
+## CLI Usage
+
+```bash
+# Translate (auto-output to same directory)
+omnicaptions translate input.srt -l zh         # → ./input_Gemini_zh.srt
+
+# Specify output file or directory
+omnicaptions translate input.srt -o output/ -l zh   # → output/input_Gemini_zh.srt
+omnicaptions translate input.srt -o zh.srt -l zh    # → zh.srt
+
+# Bilingual output (original + translation)
+omnicaptions translate input.srt -l zh --bilingual
+
+# Specify model
+omnicaptions translate input.vtt -l ja -m gemini-3-pro-preview
+```
+
+| Option | Description |
+|--------|-------------|
+| `-k, --api-key` | Gemini API key (auto-prompted if missing) |
+| `-o, --output` | Output file or directory (default: same dir as input) |
+| `-l, --language` | Target language code (required) |
+| `--bilingual` | Output both original and translation |
+| `-m, --model` | Model name (default: gemini-3-flash-preview) |
+| `-v, --verbose` | Verbose output |
+
+## Language Codes
+
+| Language | Code |
+|----------|------|
+| Chinese (Simplified) | `zh` |
+| Chinese (Traditional) | `zh-TW` |
+| Japanese | `ja` |
+| Korean | `ko` |
+| English | `en` |
+| Spanish | `es` |
+| French | `fr` |
+| German | `de` |
+
+## Supported Formats
+
+All formats from `lattifai-captions`: SRT, VTT, ASS, TTML, JSON, Gemini MD, etc.
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| No API key | Use `-k YOUR_KEY` or follow the prompt |
+| Wrong language code | Use ISO codes: zh, ja, en, etc. |
+| Lost formatting | ASS styles preserved; SRT basic only |
+| Inconsistent terms | Use glossary for technical content |
+
+## References
+
+- [Subtitle LLM Translator](https://github.com/yigitkonur/subtitle-llm-translator) - Context window approach
+- [Subtitle Translator](https://github.com/rockbenben/subtitle-translator) - Batch processing
+- [Subtitles.Translate.Agent](https://github.com/subtitlesdog/Subtitles.Translate.Agent) - Multi-agent workflow
+
+## Related Skills
+
+| Skill | Use When |
+|-------|----------|
+| `/omnicaptions:transcribe` | Need transcript first |
+| `/omnicaptions:LaiCut` | Align timing before translation |
+| `/omnicaptions:convert` | Convert format after translation |
+| `/omnicaptions:download` | Download subtitles to translate |
+
+### Workflow Examples
+
+**Important**: Generate bilingual subtitles AFTER LaiCut alignment.
+
+```bash
+# Has caption: download → LaiCut align
+omnicaptions download "https://youtube.com/watch?v=xxx"
+omnicaptions LaiCut xxx.mp4 xxx.en.vtt -o xxx_LaiCut.srt
+# Then Claude translates xxx_LaiCut.srt → xxx_LaiCut_Claude_zh.srt
+
+# No caption: transcribe → LaiCut align
+omnicaptions transcribe video.mp4
+omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
+# Then Claude translates video_LaiCut.srt → video_LaiCut_Claude_zh.srt
+```
+
+## Claude Translation Rules (Default)
+
+1. **Preserve format exactly** - Keep all timing codes, formatting tags, style definitions
+2. **Context-aware** - Consider surrounding lines for coherent dialogue
+3. **Speaker consistency** - Maintain character voice and tone
+4. **Cultural adaptation** - Adapt idioms and references naturally
+5. **Large files** - Process in batches of 100 lines to maintain quality
+
+## Claude vs Gemini
+
+| Feature | Claude (Default) | Gemini API |
+|---------|------------------|------------|
+| API Key | None needed | Required |
+| Invocation | Skill (Read/Write) | CLI command |
+| Output suffix | `_Claude_{lang}` | `_Gemini_{lang}` |
+| Best for | Most tasks | Large files, automation |

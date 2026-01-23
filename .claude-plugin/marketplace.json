@@ -1,0 +1,26 @@
+{
+  "name": "omni-captions-skills",
+  "owner": {
+    "name": "LattifAI",
+    "email": "tech@lattifai.com"
+  },
+  "metadata": {
+    "description": "AI-powered media transcription, translation, caption conversion, and audio-text alignment",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "omnicaptions",
+      "source": {
+        "source": "github",
+        "repo": "lattifai/omni-captions-skills"
+      },
+      "description": "Transcribe, translate, convert, and align captions using AI APIs",
+      "version": "0.1.0",
+      "keywords": ["transcription", "gemini", "youtube", "subtitles", "translation", "caption", "alignment", "lattifai"],
+      "license": "MIT",
+      "category": "media",
+      "strict": true
+    }
+  ]
+}

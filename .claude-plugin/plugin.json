@@ -1,0 +1,10 @@
+{
+  "name": "omnicaptions",
+  "description": "AI-powered media transcription, translation, and caption format conversion",
+  "version": "0.1.0",
+  "author": {
+    "name": "LattifAI"
+  },
+  "repository": "https://github.com/lattifai/omni-captions-skills",
+  "license": "MIT"
+}
