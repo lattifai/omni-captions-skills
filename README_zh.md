@@ -6,8 +6,29 @@ Claude Code 技能插件，用于 YouTube 和本地音视频的转录与字幕�
 
 ## 安装
 
+### 方式 1: npx（推荐）
+
 ```bash
 npx skills add https://github.com/lattifai/omni-captions-skills
+```
+
+### 方式 2: Claude Code 插件系统
+
+通过 Claude Code 内置插件系统添加 marketplace 并安装：
+
+```bash
+# 在 Claude Code 中运行：
+/plugin marketplace add lattifai/omni-captions-skills
+/plugin install omnicaptions@lattifai-omni-captions-skills
+```
+
+### 方式 3: 本地开发
+
+用于测试或开发，直接加载本地插件：
+
+```bash
+git clone https://github.com/lattifai/omni-captions-skills.git
+claude --plugin-dir ./omni-captions-skills
 ```
 
 ## 技能列表

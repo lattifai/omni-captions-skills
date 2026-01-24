@@ -1,0 +1,95 @@
+name: Skills Install
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test-skills-install:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        node-version: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: List available skills
+        run: npx -y add-skill ${{ github.repository }} -l
+
+      - name: Install all skills (global, non-interactive)
+        run: npx -y add-skill ${{ github.repository }} -g -a claude-code -y
+
+      - name: Verify skills installed
+        run: |
+          echo "Checking ~/.claude/skills directory..."
+          ls -la ~/.claude/skills/ || echo "No skills directory found"
+
+          # Check for expected skill directories
+          for skill in transcribe translate convert download LaiCut; do
+            if [ -d ~/.claude/skills/omnicaptions-$skill ]; then
+              echo "✓ omnicaptions-$skill installed"
+              ls ~/.claude/skills/omnicaptions-$skill/
+            else
+              echo "✗ omnicaptions-$skill NOT found"
+              exit 1
+            fi
+          done
+
+      - name: Verify SKILL.md files
+        run: |
+          for skill in transcribe translate convert download LaiCut; do
+            if [ -f ~/.claude/skills/omnicaptions-$skill/SKILL.md ]; then
+              echo "✓ omnicaptions-$skill/SKILL.md exists"
+            else
+              echo "✗ omnicaptions-$skill/SKILL.md NOT found"
+              exit 1
+            fi
+          done
+          echo "All SKILL.md files verified!"
+
+  test-plugin-structure:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify plugin.json exists
+        run: |
+          if [ -f .claude-plugin/plugin.json ]; then
+            echo "✓ .claude-plugin/plugin.json exists"
+            cat .claude-plugin/plugin.json
+          else
+            echo "✗ .claude-plugin/plugin.json NOT found"
+            exit 1
+          fi
+
+      - name: Verify skills directory structure
+        run: |
+          echo "Skills directory structure:"
+          find skills -name "SKILL.md" -type f | while read f; do
+            echo "✓ $f"
+          done
+
+      - name: Validate plugin.json schema
+        run: |
+          node -e "
+            const fs = require('fs');
+            const plugin = JSON.parse(fs.readFileSync('.claude-plugin/plugin.json', 'utf8'));
+
+            const required = ['name', 'description', 'version'];
+            const missing = required.filter(f => !plugin[f]);
+
+            if (missing.length > 0) {
+              console.error('Missing required fields:', missing);
+              process.exit(1);
+            }
+
+            console.log('✓ plugin.json is valid');
+            console.log('  name:', plugin.name);
+            console.log('  version:', plugin.version);
+          "

@@ -8,8 +8,29 @@ Claude Code skills for YouTube or Local media file transcription and Caption tra
 
 ## Install
 
+### Option 1: npx (Recommended)
+
 ```bash
 npx skills add https://github.com/lattifai/omni-captions-skills
+```
+
+### Option 2: Claude Code Plugin System
+
+Add the marketplace and install via Claude Code's built-in plugin system:
+
+```bash
+# In Claude Code, run:
+/plugin marketplace add lattifai/omni-captions-skills
+/plugin install omnicaptions@lattifai-omni-captions-skills
+```
+
+### Option 3: Local Development
+
+For testing or development, load the plugin directly:
+
+```bash
+git clone https://github.com/lattifai/omni-captions-skills.git
+claude --plugin-dir ./omni-captions-skills
 ```
 
 ## Skills
