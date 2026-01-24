@@ -140,6 +140,32 @@ class GeminiCaption:
                 return True
         return False
 
+    @staticmethod
+    def _detect_audio_language(info: dict) -> Optional[str]:
+        """Detect original audio language from video info.
+
+        Checks multiple sources:
+        1. Audio track language metadata
+        2. Format language tags
+        3. Requested format language
+        """
+        # Check audio formats for language
+        formats = info.get("formats", [])
+        for fmt in formats:
+            if fmt.get("acodec") and fmt.get("acodec") != "none":
+                lang = fmt.get("language")
+                if lang:
+                    return lang
+
+        # Check requested formats
+        requested = info.get("requested_formats", [])
+        for fmt in requested:
+            lang = fmt.get("language")
+            if lang:
+                return lang
+
+        return None
+
     def _download_with_ytdlp(
         self, url: str, output_dir: Optional[Path] = None, quality: str = "audio"
     ) -> DownloadResult:
@@ -193,44 +219,76 @@ class GeminiCaption:
             info = ydl.extract_info(url, download=False)
             video_id = info.get("id", "video")
             title = info.get("title", "")
-            original_lang = info.get("language") or "en"
+
+            # Detect original audio language from multiple sources
+            original_lang = (
+                info.get("language")  # Video metadata language
+                or info.get("audio_language")  # Audio track language
+                or self._detect_audio_language(info)  # From audio tracks
+                or "en"  # Default fallback
+            )
+
+            if self.config.verbose:
+                self.logger.info(f"Detected original language: {original_lang}")
 
             # Determine best subtitle language
             subtitles = info.get("subtitles", {})  # Manual/uploaded
             auto_subs = info.get("automatic_captions", {})  # Auto-generated
 
-            # Preferred languages in order
-            preferred_langs = [original_lang, "en", "zh", "ja", "ko"]
+            # Priority: original language first, then common languages
+            preferred_langs = [original_lang]
+            # Add language variants (e.g., en -> en-US, en-GB)
+            for lang_code in list(subtitles.keys()) + list(auto_subs.keys()):
+                if lang_code.startswith(original_lang):
+                    if lang_code not in preferred_langs:
+                        preferred_langs.append(lang_code)
+            # Add fallback languages
+            for fallback in ["en", "zh", "ja", "ko"]:
+                if fallback not in preferred_langs:
+                    preferred_langs.append(fallback)
 
-            # Priority: manual preferred > manual any > auto preferred > auto any
+            # Priority: manual original > auto original > manual other > auto other
             sub_lang = None
             sub_source = None
 
-            # Check manual subtitles first
-            for lang in preferred_langs:
+            # 1. Check manual subtitles for original language first
+            for lang in preferred_langs[: len(preferred_langs)]:
                 if lang in subtitles:
                     sub_lang = lang
                     sub_source = "manual"
-                    break
-            if not sub_lang and subtitles:
-                sub_lang = next(iter(subtitles.keys()))
-                sub_source = "manual"
+                    # Prefer original language, stop searching
+                    if lang.startswith(original_lang):
+                        break
 
-            # Fall back to auto-generated
+            # 2. Check auto-generated for original language
+            if not sub_lang or not sub_lang.startswith(original_lang):
+                for lang in preferred_langs:
+                    if lang in auto_subs and lang.startswith(original_lang):
+                        sub_lang = lang
+                        sub_source = "auto"
+                        break
+
+            # 3. Fall back to any available subtitle
             if not sub_lang:
                 for lang in preferred_langs:
+                    if lang in subtitles:
+                        sub_lang = lang
+                        sub_source = "manual"
+                        break
                     if lang in auto_subs:
                         sub_lang = lang
                         sub_source = "auto"
                         break
-                if not sub_lang and auto_subs:
-                    sub_lang = next(iter(auto_subs.keys()))
-                    sub_source = "auto"
 
             if sub_lang:
                 ydl_opts["subtitleslangs"] = [sub_lang]
                 if self.config.verbose:
-                    self.logger.info(f"Found {sub_source} subtitles: {sub_lang}")
+                    lang_match = (
+                        "✓ matches audio"
+                        if sub_lang.startswith(original_lang)
+                        else "≠ different from audio"
+                    )
+                    self.logger.info(f"Selected {sub_source} subtitles: {sub_lang} ({lang_match})")
             else:
                 # No subtitles available, disable subtitle download
                 ydl_opts["writesubtitles"] = False

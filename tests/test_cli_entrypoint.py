@@ -3,8 +3,6 @@
 import subprocess
 import sys
 
-import pytest
-
 
 class TestCLIEntrypoint:
     """Test CLI entry point is correctly installed."""
