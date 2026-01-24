@@ -74,12 +74,13 @@ def apply_bilingual_colors(cap: Caption, line2_color: str) -> Caption:
     return cap
 
 
-def build_ass_metadata(preset_name: str, fontsize: int = 48) -> dict:
+def build_ass_metadata(preset_name: str, fontsize: int = 48, resolution: tuple[int, int] = (1920, 1080)) -> dict:
     """Build ASS metadata from preset name.
 
     Args:
         preset_name: Style preset name
         fontsize: Font size (default 48 for 1080p, use 72 for 4K, 36 for 720p)
+        resolution: Video resolution (width, height), default 1920x1080
     """
     preset = ASS_STYLE_PRESETS.get(preset_name, ASS_STYLE_PRESETS["default"])
 
@@ -102,6 +103,8 @@ def build_ass_metadata(preset_name: str, fontsize: int = 48) -> dict:
     }
 
     return {
+        "play_res_x": resolution[0],
+        "play_res_y": resolution[1],
         "ass_styles": {"Default": style},
     }
 
@@ -114,7 +117,7 @@ def color_to_ass(color) -> str:
 def read_ass_styles(input_path: Path) -> dict | None:
     """Read existing ASS styles from input file.
 
-    Returns dict with ass_styles or None if not an ASS file.
+    Returns dict with ass_styles, play_res_x, play_res_y or None if not an ASS file.
     """
     if input_path.suffix.lower() not in (".ass", ".ssa"):
         return None
@@ -141,7 +144,14 @@ def read_ass_styles(input_path: Path) -> dict | None:
                 "marginr": style.marginr,
                 "marginv": style.marginv,
             }
-        return {"ass_styles": styles}
+        result = {"ass_styles": styles}
+        # Preserve PlayResX/PlayResY from original file
+        if hasattr(subs, "info"):
+            if "PlayResX" in subs.info:
+                result["play_res_x"] = int(subs.info["PlayResX"])
+            if "PlayResY" in subs.info:
+                result["play_res_y"] = int(subs.info["PlayResY"])
+        return result
     except Exception:
         return None
 
@@ -380,6 +390,11 @@ def cmd_convert(args):
                 # Update fontsize in all styles
                 for style in metadata["ass_styles"].values():
                     style["fontsize"] = fontsize
+                # Add default PlayRes if not present
+                if "play_res_x" not in metadata:
+                    metadata["play_res_x"] = 1920
+                if "play_res_y" not in metadata:
+                    metadata["play_res_y"] = 1080
                 if args.verbose:
                     print(f"Preserving styles, fontsize: {fontsize}", file=sys.stderr)
             else:
