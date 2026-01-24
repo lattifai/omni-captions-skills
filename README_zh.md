@@ -1,142 +1,99 @@
 # omni-captions-skills
 
-Claude Code 技能插件，用于 YouTube 和本地音视频的转录与字幕翻译。
+**视频字幕 So Easy** — Claude Code Caption Skills
 
-> **声明致谢**: Gemini 转录提示词来自 [@dotey](https://x.com/dotey) 的 [推文](https://x.com/dotey/status/1971810075867046131) 并做了[少许修改](https://github.com/lattifai/omni-captions-skills/commit/3f85975058aaad3c83254d213dbd4136364a2073)。
+> "我需要 Fireship 这个 vibe coding 视频的中英双语字幕 https://youtube.com/watch?v=Tw18-4U7mts"
+>
+> 就这一句，Claude 帮你搞定下载、转录、翻译。
 
 ## 安装
-
-### 方式 1: npx（推荐）
 
 ```bash
 npx skills add https://github.com/lattifai/omni-captions-skills
 ```
 
-### 方式 2: Claude Code 插件系统
+<details>
+<summary>其他安装方式</summary>
 
-通过 Claude Code 内置插件系统添加 marketplace 并安装：
-
+**Claude Code 插件系统：**
 ```bash
-# 在 Claude Code 中运行：
 /plugin marketplace add lattifai/omni-captions-skills
 /plugin install omnicaptions@lattifai-omni-captions-skills
 ```
 
-### 方式 3: 本地开发
-
-用于测试或开发，直接加载本地插件：
-
+**本地开发：**
 ```bash
 git clone https://github.com/lattifai/omni-captions-skills.git
 claude --plugin-dir ./omni-captions-skills
 ```
+</details>
 
-## 技能列表
+## 试试看
+
+```
+❯ 帮我把 Fireship 这个 vibe coding 视频做成中英双语字幕 https://youtube.com/watch?v=Tw18-4U7mts
+```
+
+```srt
+1
+00:00:00,000 --> 00:00:03,200
+Mass hysteria satisfies a deep human need.
+群体性癔症满足了人类某种深层需求。
+
+2
+00:00:03,200 --> 00:00:07,440
+Vibe coding is programming without actually writing any code yourself.
+Vibe coding 就是不用自己写代码的编程方式。
+```
+
+## 技能一览
 
 | 技能 | 功能 |
 |------|------|
-| `/omnicaptions:transcribe` | 将 YouTube/视频转录为带时间戳的 Markdown |
-| `/omnicaptions:translate` | 翻译字幕（Gemini API / Claude） |
-| `/omnicaptions:convert` | 支持 30+ 字幕格式互转 |
-| `/omnicaptions:download` | 从 YouTube 下载视频/字幕 |
-| `/omnicaptions:LaiCut` | 使用 LattifAI Lattice-1 模型进行强制对齐 |
+| `transcribe` | YouTube/视频 → 带时间戳的 Markdown |
+| `translate` | 翻译字幕，支持双语输出 |
+| `convert` | 30+ 字幕格式互转 |
+| `download` | 下载 YouTube 视频/音频/字幕 |
+| `LaiCut` | **强制对齐，词级精度时间轴** |
 
-> **提示**: `/omnicaptions:transcribe` 和 `/omnicaptions-transcribe` 是等效的。
+> 调用方式：`/omnicaptions:transcribe` 或 `/omnicaptions-transcribe`
 
-基于 [lattifai-captions](https://github.com/lattifai/captions) 构建，支持 30+ 字幕格式，包括混乱的 YouTube VTT（词级时间戳）。
+## LaiCut：精准时间轴
 
-## 使用示例
+普通转录的时间戳只是"大概"，LaiCut 使用 [LattifAI](https://lattifai.com/) Lattice-1 模型将文本与音频波形精确匹配，实现**词级精度**。
 
-### YouTube 视频生成中英双语字幕
+**支持语言：** 英语、中文、德语及混合
 
-```
-❯ 制作这个视频的中英双语字幕 https://youtube.com/shorts/H8LwA-daqqA
-```
+**推荐工作流：** 先对齐再翻译（翻译文本与原始音频不匹配，无法对齐）
 
-输出:
-```srt
-1
-00:00:00,000 --> 00:00:03,500
-Does fast charging hurt the battery?
-快充会伤害电池吗？
-```
+## 配置
 
-### 中文歌曲翻译成英文字幕
+| 功能 | API Key | 说明 |
+|------|---------|------|
+| 翻译 | 无需配置 | **默认使用 Claude**，开箱即用 |
+| 转录 | [Gemini API](https://aistudio.google.com/apikey) | 可选，仅转录时需要 |
+| LaiCut 对齐 | [LattifAI API](https://lattifai.com/dashboard/api-keys) | 可选，仅精准对齐时需要 |
 
-```
-❯ 把王菲的《如愿》翻译成英文字幕 https://youtube.com/watch?v=6fV2dRqJHvw
-```
+> Gemini 仅用于视频转录。当视频没有字幕时会提示是否需要转录，届时再配置即可。翻译默认走 Claude，开箱即用。
 
-输出:
-```srt
-1
-00:00:37,700 --> 00:00:45,000
-你是，遥遥的路，山野大雾里的灯。
-You are the distant road, a lamp within the mountain mist.
-```
+首次使用时自动提示输入，保存至 `~/.config/omnicaptions/config.json`
 
-### 下载视频用于编辑
-
-```
-❯ 下载这个视频 https://youtube.com/watch?v=VIDEO_ID
-```
-
-### 字幕格式转换
-
-```
-❯ 把这个 SRT 转成 VTT 格式
-
-Claude: [使用 /omnicaptions:convert]
-        omnicaptions convert input.srt -t vtt
-```
-
-## 使用 `LaiCut` 获取精准时间轴
-
-不同来源的字幕时间轴往往存在问题：
-
-| 来源 | 问题 |
-|------|------|
-| YouTube 自动字幕 | 时间偏移、按词分段 |
-| Gemini 转录 | 时间戳不够精确 |
-| 手动转录 | 完全没有时间信息 |
-
-**LaiCut** 使用强制对齐技术（[LattifAI](https://lattifai.com/) Lattice-1 模型），将文本精确匹配到音频波形，实现**词级精度**。
-
-**支持语言**: 英语、中文、德语，以及这些语言的混合。更多语言即将支持。
-
-> **即将推出**: 更多 LaiCut 功能，包括翻译、说话人分离、基于精准时间轴的片段剪辑。
-
-### 为什么要先对齐再翻译？
-
-LaiCut 将文本与语音对齐。双语字幕包含与音频不匹配的翻译，因此：
-
-1. **先对齐** - 使用原始语言文本
-2. **后翻译** - 保留精准的时间轴
-
-## 推荐工作流
-
-制作精准双语字幕，建议先对齐时间轴再翻译：
+## OmniCaptions 命令行使用示例
 
 ```bash
 # 有字幕：下载 → 对齐 → 翻译
 omnicaptions download "https://youtube.com/watch?v=xxx"
-omnicaptions LaiCut xxx.mp4 xxx.en.vtt -o xxx_LaiCut.srt
-omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
+omnicaptions LaiCut video.mp4 video.en.vtt -o aligned.srt
+omnicaptions translate aligned.srt -l zh --bilingual
 
 # 无字幕：转录 → 对齐 → 翻译
 omnicaptions transcribe video.mp4
-omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
-omnicaptions translate video_LaiCut.srt -l zh --bilingual
+omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o aligned.srt
+omnicaptions translate aligned.srt -l zh --bilingual
 ```
 
-## 配置
+---
 
-**Gemini API**（转录/翻译）: https://aistudio.google.com/apikey
+**Credits:** Gemini 转录提示词源自 [@dotey](https://x.com/dotey) 的[推文](https://x.com/dotey/status/1971810075867046131)，[略有修改](https://github.com/lattifai/omni-captions-skills/commit/3f85975)。
 
-**LattifAI API**（LaiCut 对齐）: https://lattifai.com/dashboard/api-keys
-
-API Key 会自动提示输入，并保存到 `~/.config/omnicaptions/config.json`
-
-## 许可证
-
-MIT
+基于 [lattifai-captions](https://github.com/lattifai/captions) 构建 | MIT License
