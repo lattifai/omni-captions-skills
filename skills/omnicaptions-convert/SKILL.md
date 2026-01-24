@@ -69,6 +69,39 @@ omnicaptions convert input.srt -o output.vtt    # → output.vtt
 omnicaptions convert input.txt -o out.srt -f txt -t srt
 ```
 
+## ASS Style Presets
+
+When converting to ASS format, use `--style` to apply preset styles:
+
+```bash
+omnicaptions convert input.srt -o output.ass --style default    # White text, bottom
+omnicaptions convert input.srt -o output.ass --style top        # White text, top
+omnicaptions convert input.srt -o output.ass --style bilingual  # White + Yellow (for bilingual)
+omnicaptions convert input.srt -o output.ass --style yellow     # Yellow text, bottom
+```
+
+| Preset | Position | Line 1 | Line 2 | Use Case |
+|--------|----------|--------|--------|----------|
+| `default` | Bottom | White | White | Standard captions |
+| `top` | Top | White | White | When bottom is occupied |
+| `bilingual` | Bottom | White | Yellow | Bilingual captions (原文 + 译文) |
+| `yellow` | Bottom | Yellow | Yellow | High visibility |
+
+### Bilingual Example
+
+If your SRT has two-line captions like:
+```
+1
+00:00:01,000 --> 00:00:03,000
+Hello World
+你好世界
+```
+
+Use `--style bilingual` to make the second line yellow:
+```bash
+omnicaptions convert bilingual.srt -o output.ass --style bilingual
+```
+
 ## Python Usage
 
 ```python

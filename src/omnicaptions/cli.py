@@ -14,6 +14,92 @@ from .config import (
     set_gemini_api_key,
 )
 
+# =============================================================================
+# ASS Style Presets
+# =============================================================================
+
+ASS_STYLE_PRESETS = {
+    "default": {
+        "alignment": 2,  # bottom-center
+        "primary_color": "#FFFFFF",
+        "outline_color": "#000000",
+    },
+    "top": {
+        "alignment": 8,  # top-center
+        "primary_color": "#FFFFFF",
+        "outline_color": "#000000",
+    },
+    "bilingual": {
+        "alignment": 2,
+        "primary_color": "#FFFFFF",
+        "line2_color": "#FFFF00",  # yellow for second line
+        "outline_color": "#000000",
+    },
+    "yellow": {
+        "alignment": 2,
+        "primary_color": "#FFFF00",
+        "outline_color": "#000000",
+    },
+}
+
+
+def hex_to_ass_color(hex_color: str) -> str:
+    """Convert #RRGGBB to ASS &HBBGGRR format."""
+    hex_color = hex_color.lstrip("#")
+    r, g, b = hex_color[0:2], hex_color[2:4], hex_color[4:6]
+    return f"&H00{b}{g}{r}"
+
+
+def apply_bilingual_colors(cap: Caption, line2_color: str) -> Caption:
+    """Apply color tag to second line of bilingual captions.
+
+    Converts "Hello\\N你好" to "Hello\\N{\\c&H00FFFF&}你好"
+
+    Note: pysubs2 uses \\N (literal backslash-N) for ASS line breaks,
+    not actual newline characters.
+    """
+    ass_color = hex_to_ass_color(line2_color)
+
+    for sup in cap.supervisions:
+        text = sup.text or ""
+        # pysubs2 uses \\N for ASS line breaks (literal string, not escape)
+        if "\\N" in text:
+            parts = text.split("\\N", 1)
+            sup.text = f"{parts[0]}\\N{{\\c{ass_color}&}}{parts[1]}"
+        elif "\n" in text:
+            # Handle actual newline if present
+            lines = text.split("\n", 1)
+            sup.text = f"{lines[0]}\\N{{\\c{ass_color}&}}{lines[1]}"
+
+    return cap
+
+
+def build_ass_metadata(preset_name: str) -> dict:
+    """Build ASS metadata from preset name."""
+    preset = ASS_STYLE_PRESETS.get(preset_name, ASS_STYLE_PRESETS["default"])
+
+    # Build style dict for ASS
+    style = {
+        "fontname": "Arial",
+        "fontsize": 48,
+        "primarycolor": hex_to_ass_color(preset["primary_color"]),
+        "secondarycolor": "&H000000FF",
+        "outlinecolor": hex_to_ass_color(preset["outline_color"]),
+        "backcolor": "&H00000000",
+        "bold": False,
+        "italic": False,
+        "outline": 2.0,
+        "shadow": 1.0,
+        "alignment": preset["alignment"],
+        "marginl": 20,
+        "marginr": 20,
+        "marginv": 20,
+    }
+
+    return {
+        "ass_styles": {"Default": style},
+    }
+
 
 def ensure_api_key(api_key: str | None = None) -> bool:
     """Ensure API key is available.
@@ -195,13 +281,18 @@ def cmd_convert(args):
         print(f"Error: Input file not found: {input_path}", file=sys.stderr)
         sys.exit(1)
 
+    # Check if bilingual style - need to preserve line breaks
+    style_name = getattr(args, "style", None)
+    preserve_newlines = style_name == "bilingual"
+
     # Determine input format
     input_format = getattr(args, "from", None)  # --from is a reserved word
     if input_format == "gemini" or (input_format is None and input_path.suffix.lower() == ".md"):
         supervisions = GeminiReader.extract_for_alignment(str(input_path))
         cap = Caption.from_supervisions(supervisions)
     else:
-        cap = Caption.read(str(input_path), format=input_format)
+        # Disable normalize_text for bilingual to preserve \N line breaks
+        cap = Caption.read(str(input_path), format=input_format, normalize_text=not preserve_newlines)
 
     # Determine output format and path
     output_format = args.to
@@ -225,7 +316,23 @@ def cmd_convert(args):
             get_default_output_dir(args.input) / f"{get_stem_from_input(args.input)}{default_ext}"
         )
 
-    cap.write(str(output_path), output_format=output_format)
+    # Handle ASS style presets
+    metadata = None
+    style_name = getattr(args, "style", None)
+    is_ass_output = output_format == "ass" or str(output_path).lower().endswith(".ass")
+
+    if is_ass_output and style_name:
+        preset = ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"])
+        metadata = build_ass_metadata(style_name)
+
+        # Apply bilingual colors if preset has line2_color
+        if "line2_color" in preset:
+            apply_bilingual_colors(cap, preset["line2_color"])
+
+        if args.verbose:
+            print(f"Using ASS style preset: {style_name}", file=sys.stderr)
+
+    cap.write(str(output_path), output_format=output_format, metadata=metadata)
     if args.verbose:
         print(f"Converted: {input_path} -> {output_path}", file=sys.stderr)
 
@@ -382,6 +489,12 @@ def main():
         dest="to",
         metavar="FMT",
         help="Output format (from extension if not specified). Formats: srt, vtt, ass, ttml, lrc, json, etc.",
+    )
+    p_convert.add_argument(
+        "-s",
+        "--style",
+        choices=["default", "top", "bilingual", "yellow"],
+        help="ASS style preset: default (white, bottom), top (white, top), bilingual (white+yellow), yellow",
     )
     p_convert.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     p_convert.set_defaults(func=cmd_convert)
