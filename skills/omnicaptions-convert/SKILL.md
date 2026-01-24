@@ -117,23 +117,38 @@ omnicaptions convert bilingual.srt -o output.ass --style default --line2-color "
 
 Common colors: `#FFFFFF` (white), `#FFFF00` (yellow), `#00FF00` (green), `#00FFFF` (cyan), `#FF6600` (orange)
 
-### Font Size
+### Font Size and Resolution
 
-Use `--fontsize` to adjust font size based on video resolution:
+Font size is **auto-calculated** based on video resolution. Resolution is detected from (priority order):
+
+1. `--resolution` argument (e.g., `1080p`, `4k`, `1920x1080`)
+2. `--video` argument (uses ffprobe to detect)
+3. `.meta.json` file (saved by `omnicaptions download`)
+4. Default: 1080p
 
 ```bash
-omnicaptions convert input.srt -o output.ass --fontsize 72   # 4K
-omnicaptions convert input.srt -o output.ass --fontsize 48   # 1080p (default)
-omnicaptions convert input.srt -o output.ass --fontsize 36   # 720p
+# Auto-detect from .meta.json (saved by download command)
+omnicaptions convert abc123.en.srt -o abc123.en.ass --karaoke
+
+# Specify resolution directly
+omnicaptions convert input.srt -o output.ass --resolution 4k
+omnicaptions convert input.srt -o output.ass --resolution 720p
+omnicaptions convert input.srt -o output.ass --resolution 1920x1080
+
+# Detect from video file (uses ffprobe)
+omnicaptions convert input.srt -o output.ass --video video.mp4
+
+# Override auto-calculated fontsize
+omnicaptions convert input.srt -o output.ass --resolution 4k --fontsize 80
 ```
 
-| Resolution | Recommended Size |
-|------------|------------------|
-| 480p | 24 |
-| 720p | 36 |
-| 1080p | 48 (default) |
-| 1440p | 64 |
-| 4K | 72 |
+| Resolution | PlayRes | Auto FontSize |
+|------------|---------|---------------|
+| 480p | 854×480 | 21 |
+| 720p | 1280×720 | 32 |
+| 1080p | 1920×1080 | 48 (default) |
+| 2K | 2560×1440 | 64 |
+| 4K | 3840×2160 | 96 |
 
 ## Karaoke Mode
 

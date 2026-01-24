@@ -24,6 +24,8 @@ class DownloadResult(NamedTuple):
     caption_path: Optional[Path] = None
     video_id: str = ""
     title: str = ""
+    width: Optional[int] = None
+    height: Optional[int] = None
 
 
 # Video quality presets
@@ -220,6 +222,12 @@ class GeminiCaption:
             video_id = info.get("id", "video")
             title = info.get("title", "")
 
+            # Extract video resolution
+            video_width = info.get("width")
+            video_height = info.get("height")
+            if self.config.verbose and video_width and video_height:
+                self.logger.info(f"Video resolution: {video_width}x{video_height}")
+
             # Detect original audio language from multiple sources
             original_lang = (
                 info.get("language")  # Video metadata language
@@ -333,12 +341,26 @@ class GeminiCaption:
             if caption_path:
                 self.logger.info(f"Downloaded caption: {caption_path}")
 
+        # Save metadata to .meta.json for later use (e.g., ASS font scaling)
+        meta_path = output_dir / f"{video_id}.meta.json"
+        meta_data = {
+            "video_id": video_id,
+            "title": title,
+            "width": video_width,
+            "height": video_height,
+        }
+        meta_path.write_text(json.dumps(meta_data, ensure_ascii=False, indent=2))
+        if self.config.verbose:
+            self.logger.info(f"Saved metadata: {meta_path}")
+
         return DownloadResult(
             audio_path=audio_path,
             video_path=video_path,
             caption_path=caption_path,
             video_id=video_id,
             title=title,
+            width=video_width,
+            height=video_height,
         )
 
     # ==================== Download ====================

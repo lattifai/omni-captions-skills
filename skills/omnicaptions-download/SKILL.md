@@ -84,13 +84,17 @@ omnicaptions download "https://youtube.com/watch?v=VIDEO_ID" -o ./downloads/
 Downloads produce:
 - **Audio/Video file**: `.m4a`, `.mp4`, etc.
 - **Captions** (if available): `.vtt` or `.srt`
+- **Metadata**: `.meta.json` (video resolution, title, etc. for ASS font scaling)
 
 ```
 Video: ./VIDEO_ID.mp4
 Audio: ./VIDEO_ID.m4a
 Caption: ./VIDEO_ID.en.vtt
+Metadata: ./VIDEO_ID.meta.json  # Used by convert for auto font size
 Title: Video Title Here
 ```
+
+The `.meta.json` file stores video resolution, which `omnicaptions convert` uses to auto-calculate font size for ASS karaoke output.
 
 ## Supported Platforms
 

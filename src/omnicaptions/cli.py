@@ -1,6 +1,8 @@
 """Command-line interface for OmniCaptions."""
 
 import argparse
+import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,6 +15,157 @@ from .config import (
     set_gemini_api_key,
     set_lattifai_api_key,
 )
+
+# =============================================================================
+# Resolution Detection and Font Size Calculation
+# =============================================================================
+
+# Standard resolution presets: (width, height)
+RESOLUTION_PRESETS = {
+    "480p": (854, 480),
+    "720p": (1280, 720),
+    "1080p": (1920, 1080),
+    "2k": (2560, 1440),
+    "4k": (3840, 2160),
+}
+
+
+def get_video_resolution(video_path: str | Path) -> tuple[int, int] | None:
+    """Get video resolution using ffprobe.
+
+    Args:
+        video_path: Path to video file
+
+    Returns:
+        (width, height) tuple or None if detection fails
+    """
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height",
+                "-of",
+                "json",
+                str(video_path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            return None
+
+        data = json.loads(result.stdout)
+        streams = data.get("streams", [])
+        if streams:
+            width = streams[0].get("width")
+            height = streams[0].get("height")
+            if width and height:
+                return (int(width), int(height))
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+        pass
+    return None
+
+
+def calculate_fontsize(height: int) -> int:
+    """Calculate recommended font size based on video height.
+
+    The font size scales linearly with video height.
+    Base: 48 for 1080p (height=1080)
+
+    Args:
+        height: Video height in pixels
+
+    Returns:
+        Recommended font size
+    """
+    # Base ratio: 48 / 1080 ≈ 0.044
+    base_ratio = 48 / 1080
+    fontsize = int(height * base_ratio)
+    # Clamp to reasonable range
+    return max(24, min(fontsize, 144))
+
+
+def parse_resolution(resolution_str: str) -> tuple[int, int] | None:
+    """Parse resolution string to (width, height).
+
+    Args:
+        resolution_str: Resolution like "1080p", "4k", or "1920x1080"
+
+    Returns:
+        (width, height) tuple or None if invalid
+    """
+    resolution_str = resolution_str.lower().strip()
+
+    # Check presets
+    if resolution_str in RESOLUTION_PRESETS:
+        return RESOLUTION_PRESETS[resolution_str]
+
+    # Try WxH format
+    if "x" in resolution_str:
+        parts = resolution_str.split("x")
+        if len(parts) == 2:
+            try:
+                return (int(parts[0]), int(parts[1]))
+            except ValueError:
+                pass
+
+    return None
+
+
+def find_video_metadata(caption_path: Path) -> tuple[int, int] | None:
+    """Find video metadata from .meta.json file.
+
+    Looks for .meta.json file in the same directory with matching video ID prefix.
+    This metadata is saved by the download command from yt-dlp.
+
+    Args:
+        caption_path: Path to caption file (e.g., "abc123.en.srt")
+
+    Returns:
+        (width, height) tuple or None if not found
+    """
+    # Try to find metadata file based on video ID prefix
+    # Common patterns: "abc123.en.srt" -> "abc123.meta.json"
+    stem = caption_path.stem
+    parent = caption_path.parent
+
+    # Try different possible prefixes
+    # e.g., "abc123.en.srt" has stem "abc123.en", try "abc123"
+    parts = stem.split(".")
+    for i in range(1, len(parts) + 1):
+        prefix = ".".join(parts[:i])
+        meta_path = parent / f"{prefix}.meta.json"
+        if meta_path.exists():
+            try:
+                data = json.loads(meta_path.read_text())
+                width = data.get("width")
+                height = data.get("height")
+                if width and height:
+                    return (int(width), int(height))
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    # Also try first part only (most common case)
+    if parts:
+        meta_path = parent / f"{parts[0]}.meta.json"
+        if meta_path.exists():
+            try:
+                data = json.loads(meta_path.read_text())
+                width = data.get("width")
+                height = data.get("height")
+                if width and height:
+                    return (int(width), int(height))
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    return None
+
 
 # =============================================================================
 # ASS Style Presets
@@ -343,7 +496,47 @@ def cmd_convert(args):
     line1_color = getattr(args, "line1_color", None)
     line2_color = getattr(args, "line2_color", None)
     fontsize = getattr(args, "fontsize", None)
+    resolution_str = getattr(args, "resolution", None)
+    video_file = getattr(args, "video", None)
     preserve_newlines = style_name == "bilingual" or line2_color is not None
+
+    # Determine video resolution (priority: --resolution > --video > .meta.json > default)
+    resolution = None
+    resolution_source = None
+
+    if resolution_str:
+        # 1. Explicit --resolution argument
+        resolution = parse_resolution(resolution_str)
+        if resolution:
+            resolution_source = "argument"
+        else:
+            print(f"Warning: Invalid resolution '{resolution_str}'", file=sys.stderr)
+
+    if not resolution and video_file:
+        # 2. Detect from --video file using ffprobe
+        video_path = Path(video_file)
+        if video_path.exists():
+            resolution = get_video_resolution(video_path)
+            if resolution:
+                resolution_source = "ffprobe"
+            else:
+                print(f"Warning: Could not detect resolution from '{video_file}'", file=sys.stderr)
+        else:
+            print(f"Warning: Video file not found: {video_file}", file=sys.stderr)
+
+    if not resolution:
+        # 3. Try to find .meta.json file from download command
+        resolution = find_video_metadata(input_path)
+        if resolution:
+            resolution_source = "metadata"
+
+    if not resolution:
+        # 4. Default to 1080p
+        resolution = (1920, 1080)
+        resolution_source = "default"
+
+    if args.verbose:
+        print(f"Resolution: {resolution[0]}x{resolution[1]} (source: {resolution_source})", file=sys.stderr)
 
     # Determine input format
     input_format = getattr(args, "from", None)  # --from is a reserved word
@@ -382,30 +575,37 @@ def cmd_convert(args):
     metadata = None
     is_ass_output = output_format == "ass" or str(output_path).lower().endswith(".ass")
 
-    # Only create metadata if user explicitly specified ASS options
-    has_ass_options = style_name or line1_color or line2_color or fontsize is not None
-    only_fontsize = fontsize is not None and not style_name and not line1_color and not line2_color
+    # Calculate fontsize from resolution if not specified
+    actual_fontsize = fontsize if fontsize is not None else calculate_fontsize(resolution[1])
+
+    # Only create metadata if user explicitly specified ASS options or resolution
+    has_resolution = resolution_str or video_file
+    has_ass_options = style_name or line1_color or line2_color or fontsize is not None or has_resolution
+    only_resolution = has_resolution and not style_name and not line1_color and not line2_color
 
     if is_ass_output and has_ass_options:
-        # If only fontsize specified, try to preserve existing styles from input ASS
-        if only_fontsize:
+        # If only resolution/fontsize specified, try to preserve existing styles from input ASS
+        if only_resolution or (fontsize is not None and not style_name and not line1_color and not line2_color):
             metadata = read_ass_styles(input_path)
             if metadata:
-                # Update fontsize in all styles
+                # Update fontsize and PlayRes in all styles
                 for style in metadata["ass_styles"].values():
-                    style["fontsize"] = fontsize
-                # Add default PlayRes if not present
-                if "play_res_x" not in metadata:
-                    metadata["play_res_x"] = 1920
-                if "play_res_y" not in metadata:
-                    metadata["play_res_y"] = 1080
+                    style["fontsize"] = actual_fontsize
+                metadata["play_res_x"] = resolution[0]
+                metadata["play_res_y"] = resolution[1]
                 if args.verbose:
-                    print(f"Preserving styles, fontsize: {fontsize}", file=sys.stderr)
+                    print(
+                        f"Preserving styles, resolution: {resolution[0]}x{resolution[1]}, fontsize: {actual_fontsize}",
+                        file=sys.stderr,
+                    )
             else:
                 # Input is not ASS, create new metadata
-                metadata = build_ass_metadata("default", fontsize)
+                metadata = build_ass_metadata("default", actual_fontsize, resolution)
                 if args.verbose:
-                    print(f"ASS style: default, fontsize: {fontsize}", file=sys.stderr)
+                    print(
+                        f"ASS style: default, resolution: {resolution[0]}x{resolution[1]}, fontsize: {actual_fontsize}",
+                        file=sys.stderr,
+                    )
         else:
             # Use preset or custom style
             preset = (
@@ -413,11 +613,10 @@ def cmd_convert(args):
                 if style_name
                 else ASS_STYLE_PRESETS["default"]
             )
-            actual_fontsize = fontsize if fontsize is not None else 48
-            metadata = build_ass_metadata(style_name or "default", actual_fontsize)
+            metadata = build_ass_metadata(style_name or "default", actual_fontsize, resolution)
             if args.verbose:
                 print(
-                    f"ASS style: {style_name or 'default'}, fontsize: {actual_fontsize}",
+                    f"ASS style: {style_name or 'default'}, resolution: {resolution[0]}x{resolution[1]}, fontsize: {actual_fontsize}",
                     file=sys.stderr,
                 )
 
@@ -647,7 +846,17 @@ def main():
         type=int,
         default=None,
         metavar="SIZE",
-        help="Font size for ASS output (default: 48 for 1080p, use 72 for 4K, 36 for 720p)",
+        help="Font size for ASS output (auto-calculated from resolution if not set)",
+    )
+    p_convert.add_argument(
+        "--resolution",
+        metavar="RES",
+        help="Video resolution for font scaling: 720p, 1080p, 4k, or WxH (e.g. 1920x1080)",
+    )
+    p_convert.add_argument(
+        "--video",
+        metavar="FILE",
+        help="Video file to auto-detect resolution (overridden by --resolution)",
     )
     p_convert.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     p_convert.set_defaults(func=cmd_convert)
