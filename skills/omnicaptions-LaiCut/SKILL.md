@@ -96,8 +96,14 @@ omnicaptions convert aligned.json -o karaoke.ass --karaoke
 
 **For translation**: Convert to SRT first (JSON is too large for Claude to read):
 ```bash
-omnicaptions convert aligned.json -o aligned.srt
-# Then translate the SRT
+# 1. JSON → SRT
+omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
+
+# 2. Claude 翻译 → video_LaiCut_Claude_zh.srt
+
+# 3. 转换为带颜色 ASS
+omnicaptions convert video_LaiCut_Claude_zh.srt -o video_LaiCut_Claude_zh_Color.ass \
+  --line1-color "#00FF00" --line2-color "#FFFF00"
 ```
 
 ## Ask User: Enable Smart Sentence Segmentation?

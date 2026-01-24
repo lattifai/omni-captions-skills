@@ -232,16 +232,25 @@ All formats from `lattifai-captions`: SRT, VTT, ASS, TTML, JSON, Gemini MD, etc.
 
 **Important**: Generate bilingual captions AFTER LaiCut alignment.
 
-```bash
-# Has caption: download → LaiCut align
-omnicaptions download "https://youtube.com/watch?v=xxx"
-omnicaptions LaiCut xxx.mp4 xxx.en.vtt -o xxx_LaiCut.srt
-# Then Claude translates xxx_LaiCut.srt → xxx_LaiCut_Claude_zh.srt
+**File naming convention** - preserve the processing chain:
+```
+原始文件 → _LaiCut → _Claude_zh → _Color
+```
 
-# No caption: transcribe → LaiCut align
-omnicaptions transcribe video.mp4
-omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
-# Then Claude translates video_LaiCut.srt → video_LaiCut_Claude_zh.srt
+```bash
+# 1. LaiCut 对齐 (保留词级时间)
+omnicaptions LaiCut video.mp4 video.en.vtt
+# → video_LaiCut.json
+
+# 2. 转换为 SRT (翻译用，文件小)
+omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
+
+# 3. Claude 翻译
+# → video_LaiCut_Claude_zh.srt (双语)
+
+# 4. 转换为带颜色的 ASS
+omnicaptions convert video_LaiCut_Claude_zh.srt -o video_LaiCut_Claude_zh_Color.ass \
+  --line1-color "#00FF00" --line2-color "#FFFF00"
 ```
 
 ### Large JSON Files
@@ -249,13 +258,8 @@ omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 LaiCut outputs JSON with word-level timing. **For translation, convert to SRT first** (much smaller):
 
 ```bash
-# JSON (word-level, large) → SRT (segment-level, small)
+# JSON (word-level, ~150KB) → SRT (segment-level, ~15KB)
 omnicaptions convert xxx_LaiCut.json -o xxx_LaiCut.srt
-
-# Then translate the SRT
-omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
-
-# Or Claude translates directly
 ```
 
 Why? JSON preserves word timing for karaoke, but translation only needs segment text. SRT is 10-20x smaller.
