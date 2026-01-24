@@ -39,5 +39,10 @@ jobs:
           # Install package with dev dependencies
           pip install -e ".[dev]"
 
+      - name: Test CLI entry point
+        run: |
+          python -m omnicaptions --help
+          omnicaptions --help
+
       - name: Run tests
         run: pytest tests/ -v
