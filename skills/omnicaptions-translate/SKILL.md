@@ -234,8 +234,13 @@ All formats from `lattifai-captions`: SRT, VTT, ASS, TTML, JSON, Gemini MD, etc.
 
 **File naming convention** - preserve the processing chain:
 ```
-原始文件 → _LaiCut → _Claude_zh → _Color
+原始文件 → _LaiCut → _Claude_zh 或 _Gemini_zh → _Color
 ```
+
+| 翻译方式 | 后缀 | 示例 |
+|----------|------|------|
+| Claude (默认) | `_Claude_zh` | `video_LaiCut_Claude_zh.srt` |
+| Gemini API | `_Gemini_zh` | `video_LaiCut_Gemini_zh.srt` |
 
 ```bash
 # 1. LaiCut 对齐 (保留词级时间)
@@ -245,8 +250,12 @@ omnicaptions LaiCut video.mp4 video.en.vtt
 # 2. 转换为 SRT (翻译用，文件小)
 omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
 
-# 3. Claude 翻译
-# → video_LaiCut_Claude_zh.srt (双语)
+# 3a. Claude 翻译 (默认)
+# → video_LaiCut_Claude_zh.srt
+
+# 3b. 或 Gemini 翻译
+omnicaptions translate video_LaiCut.srt -l zh --bilingual
+# → video_LaiCut_Gemini_zh.srt
 
 # 4. 转换为带颜色的 ASS
 omnicaptions convert video_LaiCut_Claude_zh.srt -o video_LaiCut_Claude_zh_Color.ass \
