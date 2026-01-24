@@ -118,6 +118,24 @@ omnicaptions convert bilingual.srt -o output.ass --style default --line2-color "
 
 Common colors: `#FFFFFF` (white), `#FFFF00` (yellow), `#00FF00` (green), `#00FFFF` (cyan), `#FF6600` (orange)
 
+### Font Size
+
+Use `--fontsize` to adjust font size based on video resolution:
+
+```bash
+omnicaptions convert input.srt -o output.ass --fontsize 72   # 4K
+omnicaptions convert input.srt -o output.ass --fontsize 48   # 1080p (default)
+omnicaptions convert input.srt -o output.ass --fontsize 36   # 720p
+```
+
+| Resolution | Recommended Size |
+|------------|------------------|
+| 480p | 24 |
+| 720p | 36 |
+| 1080p | 48 (default) |
+| 1440p | 64 |
+| 4K | 72 |
+
 ## Karaoke Mode
 
 Generate karaoke subtitles with word-level highlighting. **Requires word-level timing** (use LaiCut alignment first).

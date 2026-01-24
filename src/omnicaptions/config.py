@@ -116,7 +116,7 @@ def get_lattifai_api_key() -> Optional[str]:
     return config.get("LATTIFAI_API_KEY")
 
 
-def save_lattifai_api_key(key: str) -> None:
+def set_lattifai_api_key(key: str) -> None:
     """Save LattifAI API key to config file."""
     config = load_config()
     config["LATTIFAI_API_KEY"] = key

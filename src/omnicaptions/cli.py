@@ -10,7 +10,7 @@ from .caption import GeminiCaption, GeminiCaptionConfig
 from .config import (
     get_gemini_api_key,
     get_lattifai_api_key,
-    save_lattifai_api_key,
+    set_lattifai_api_key,
     set_gemini_api_key,
 )
 
@@ -74,14 +74,19 @@ def apply_bilingual_colors(cap: Caption, line2_color: str) -> Caption:
     return cap
 
 
-def build_ass_metadata(preset_name: str) -> dict:
-    """Build ASS metadata from preset name."""
+def build_ass_metadata(preset_name: str, fontsize: int = 48) -> dict:
+    """Build ASS metadata from preset name.
+
+    Args:
+        preset_name: Style preset name
+        fontsize: Font size (default 48 for 1080p, use 72 for 4K, 36 for 720p)
+    """
     preset = ASS_STYLE_PRESETS.get(preset_name, ASS_STYLE_PRESETS["default"])
 
     # Build style dict for ASS
     style = {
         "fontname": "Arial",
-        "fontsize": 48,
+        "fontsize": fontsize,
         "primarycolor": hex_to_ass_color(preset["primary_color"]),
         "secondarycolor": "&H000000FF",
         "outlinecolor": hex_to_ass_color(preset["outline_color"]),
@@ -99,6 +104,46 @@ def build_ass_metadata(preset_name: str) -> dict:
     return {
         "ass_styles": {"Default": style},
     }
+
+
+def color_to_ass(color) -> str:
+    """Convert pysubs2 Color to ASS color string (&HAABBGGRR)."""
+    return f"&H{color.a:02X}{color.b:02X}{color.g:02X}{color.r:02X}"
+
+
+def read_ass_styles(input_path: Path) -> dict | None:
+    """Read existing ASS styles from input file.
+
+    Returns dict with ass_styles or None if not an ASS file.
+    """
+    if input_path.suffix.lower() not in (".ass", ".ssa"):
+        return None
+
+    try:
+        import pysubs2
+
+        subs = pysubs2.load(str(input_path))
+        styles = {}
+        for name, style in subs.styles.items():
+            styles[name] = {
+                "fontname": style.fontname,
+                "fontsize": style.fontsize,
+                "primarycolor": color_to_ass(style.primarycolor),
+                "secondarycolor": color_to_ass(style.secondarycolor),
+                "outlinecolor": color_to_ass(style.outlinecolor),
+                "backcolor": color_to_ass(style.backcolor),
+                "bold": style.bold,
+                "italic": style.italic,
+                "outline": style.outline,
+                "shadow": style.shadow,
+                "alignment": style.alignment,
+                "marginl": style.marginl,
+                "marginr": style.marginr,
+                "marginv": style.marginv,
+            }
+        return {"ass_styles": styles}
+    except Exception:
+        return None
 
 
 def ensure_api_key(api_key: str | None = None) -> bool:
@@ -283,7 +328,9 @@ def cmd_convert(args):
 
     # Check if bilingual mode - need to preserve line breaks
     style_name = getattr(args, "style", None)
+    line1_color = getattr(args, "line1_color", None)
     line2_color = getattr(args, "line2_color", None)
+    fontsize = getattr(args, "fontsize", None)
     preserve_newlines = style_name == "bilingual" or line2_color is not None
 
     # Determine input format
@@ -319,36 +366,47 @@ def cmd_convert(args):
 
     # Handle ASS style presets and custom colors
     metadata = None
-    style_name = getattr(args, "style", None)
-    line1_color = getattr(args, "line1_color", None)
-    line2_color = getattr(args, "line2_color", None)
     is_ass_output = output_format == "ass" or str(output_path).lower().endswith(".ass")
 
-    if is_ass_output:
-        # Start with preset or default
-        if style_name:
-            preset = ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"])
-            metadata = build_ass_metadata(style_name)
-            if args.verbose:
-                print(f"Using ASS style preset: {style_name}", file=sys.stderr)
+    # Only create metadata if user explicitly specified ASS options
+    has_ass_options = style_name or line1_color or line2_color or fontsize is not None
+    only_fontsize = fontsize is not None and not style_name and not line1_color and not line2_color
+
+    if is_ass_output and has_ass_options:
+        # If only fontsize specified, try to preserve existing styles from input ASS
+        if only_fontsize:
+            metadata = read_ass_styles(input_path)
+            if metadata:
+                # Update fontsize in all styles
+                for style in metadata["ass_styles"].values():
+                    style["fontsize"] = fontsize
+                if args.verbose:
+                    print(f"Preserving styles, fontsize: {fontsize}", file=sys.stderr)
+            else:
+                # Input is not ASS, create new metadata
+                metadata = build_ass_metadata("default", fontsize)
+                if args.verbose:
+                    print(f"ASS style: default, fontsize: {fontsize}", file=sys.stderr)
         else:
-            preset = ASS_STYLE_PRESETS["default"]
-            metadata = None
-
-        # Override with custom colors
-        if line1_color:
-            if metadata is None:
-                metadata = build_ass_metadata("default")
-            metadata["ass_styles"]["Default"]["primarycolor"] = hex_to_ass_color(line1_color)
+            # Use preset or custom style
+            preset = ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"]) if style_name else ASS_STYLE_PRESETS["default"]
+            actual_fontsize = fontsize if fontsize is not None else 48
+            metadata = build_ass_metadata(style_name or "default", actual_fontsize)
             if args.verbose:
-                print(f"Line 1 color: {line1_color}", file=sys.stderr)
+                print(f"ASS style: {style_name or 'default'}, fontsize: {actual_fontsize}", file=sys.stderr)
 
-        # Handle line2 color (bilingual mode)
-        actual_line2_color = line2_color or preset.get("line2_color")
-        if actual_line2_color:
-            apply_bilingual_colors(cap, actual_line2_color)
-            if args.verbose:
-                print(f"Line 2 color: {actual_line2_color}", file=sys.stderr)
+            # Override with custom colors
+            if line1_color:
+                metadata["ass_styles"]["Default"]["primarycolor"] = hex_to_ass_color(line1_color)
+                if args.verbose:
+                    print(f"Line 1 color: {line1_color}", file=sys.stderr)
+
+            # Handle line2 color (bilingual mode)
+            actual_line2_color = line2_color or preset.get("line2_color")
+            if actual_line2_color:
+                apply_bilingual_colors(cap, actual_line2_color)
+                if args.verbose:
+                    print(f"Line 2 color: {actual_line2_color}", file=sys.stderr)
 
     # Handle karaoke mode
     karaoke_config = None
@@ -406,7 +464,7 @@ def cmd_laicut_align(args):
     # Get API key
     api_key = getattr(args, "api_key", None)
     if api_key:
-        save_lattifai_api_key(api_key)
+        set_lattifai_api_key(api_key)
     else:
         api_key = get_lattifai_api_key()
 
@@ -558,6 +616,13 @@ def main():
         const="sweep",
         choices=["sweep", "instant", "outline"],
         help="Enable karaoke mode (requires word-level timing). Effects: sweep (default), instant, outline",
+    )
+    p_convert.add_argument(
+        "--fontsize",
+        type=int,
+        default=None,
+        metavar="SIZE",
+        help="Font size for ASS output (default: 48 for 1080p, use 72 for 4K, 36 for 720p)",
     )
     p_convert.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     p_convert.set_defaults(func=cmd_convert)

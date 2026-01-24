@@ -23,7 +23,7 @@ from .config import (
     get_lattifai_api_key,
     get_lattifai_setup_instructions,
     get_setup_instructions,
-    save_lattifai_api_key,
+    set_lattifai_api_key,
     set_gemini_api_key,
 )
 
@@ -41,7 +41,7 @@ __all__ = [
     "get_setup_instructions",
     # LattifAI API key management
     "get_lattifai_api_key",
-    "save_lattifai_api_key",
+    "set_lattifai_api_key",
     "get_lattifai_setup_instructions",
     # Gemini format from lattifai-captions
     "GeminiReader",
