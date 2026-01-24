@@ -23,8 +23,8 @@ from .config import (
     get_lattifai_api_key,
     get_lattifai_setup_instructions,
     get_setup_instructions,
-    set_lattifai_api_key,
     set_gemini_api_key,
+    set_lattifai_api_key,
 )
 
 __version__ = "0.1.0"

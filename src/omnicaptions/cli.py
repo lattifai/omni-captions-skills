@@ -10,8 +10,8 @@ from .caption import GeminiCaption, GeminiCaptionConfig
 from .config import (
     get_gemini_api_key,
     get_lattifai_api_key,
-    set_lattifai_api_key,
     set_gemini_api_key,
+    set_lattifai_api_key,
 )
 
 # =============================================================================
@@ -74,7 +74,9 @@ def apply_bilingual_colors(cap: Caption, line2_color: str) -> Caption:
     return cap
 
 
-def build_ass_metadata(preset_name: str, fontsize: int = 48, resolution: tuple[int, int] = (1920, 1080)) -> dict:
+def build_ass_metadata(
+    preset_name: str, fontsize: int = 48, resolution: tuple[int, int] = (1920, 1080)
+) -> dict:
     """Build ASS metadata from preset name.
 
     Args:
@@ -350,7 +352,9 @@ def cmd_convert(args):
         cap = Caption.from_supervisions(supervisions)
     else:
         # Disable normalize_text for bilingual to preserve \N line breaks
-        cap = Caption.read(str(input_path), format=input_format, normalize_text=not preserve_newlines)
+        cap = Caption.read(
+            str(input_path), format=input_format, normalize_text=not preserve_newlines
+        )
 
     # Determine output format and path
     output_format = args.to
@@ -404,11 +408,18 @@ def cmd_convert(args):
                     print(f"ASS style: default, fontsize: {fontsize}", file=sys.stderr)
         else:
             # Use preset or custom style
-            preset = ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"]) if style_name else ASS_STYLE_PRESETS["default"]
+            preset = (
+                ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"])
+                if style_name
+                else ASS_STYLE_PRESETS["default"]
+            )
             actual_fontsize = fontsize if fontsize is not None else 48
             metadata = build_ass_metadata(style_name or "default", actual_fontsize)
             if args.verbose:
-                print(f"ASS style: {style_name or 'default'}, fontsize: {actual_fontsize}", file=sys.stderr)
+                print(
+                    f"ASS style: {style_name or 'default'}, fontsize: {actual_fontsize}",
+                    file=sys.stderr,
+                )
 
             # Override with custom colors
             if line1_color:
@@ -522,8 +533,7 @@ def cmd_laicut_align(args):
         client = LattifAI(
             client_config=ClientConfig(api_key=api_key),
             alignment_config=AlignmentConfig(
-                model_name="LattifAI/Lattice-1",
-                model_hub="modelscope"
+                model_name="LattifAI/Lattice-1", model_hub="modelscope"
             ),
             caption_config=CaptionConfig(
                 output_path=str(output_path),
