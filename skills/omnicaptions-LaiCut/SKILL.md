@@ -49,8 +49,8 @@ omnicaptions LaiCut audio.mp3 caption.srt
 # → caption_LaiCut.json (preserves word-level timing)
 
 # Specify output format
-omnicaptions LaiCut video.mp4 transcript.md -o aligned.srt
-omnicaptions LaiCut video.mp4 transcript.md -o aligned.json  # preserves word timing
+omnicaptions LaiCut video.mp4 transcript.md -o transcript_LaiCut.srt
+omnicaptions LaiCut video.mp4 transcript.md -o transcript_LaiCut.json  # preserves word timing
 
 # Smart sentence segmentation (for word-level captions like YouTube VTT)
 omnicaptions LaiCut video.mp4 caption.vtt --split-sentence
@@ -85,13 +85,13 @@ JSON output preserves **word-level timing** for downstream tasks:
 Convert JSON to other formats:
 ```bash
 # For playback/editing
-omnicaptions convert aligned.json -o output.srt
+omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
 
 # For bilingual ASS
-omnicaptions convert aligned.json -o output.ass --style bilingual
+omnicaptions convert video_LaiCut.json -o video_LaiCut.ass --style bilingual
 
 # For karaoke
-omnicaptions convert aligned.json -o karaoke.ass --karaoke
+omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke
 ```
 
 **For translation**: Convert to SRT first (JSON is too large for Claude to read):

@@ -85,13 +85,13 @@ API keys are prompted automatically and saved to `~/.config/omnicaptions/config.
 ```bash
 # With captions: download → align → translate
 omnicaptions download "https://youtube.com/watch?v=xxx"
-omnicaptions LaiCut video.mp4 video.en.vtt -o aligned.srt
-omnicaptions translate aligned.srt -l zh --bilingual
+omnicaptions LaiCut video.mp4 video.en.vtt -o video_LaiCut.srt
+omnicaptions translate video_LaiCut.srt -l zh --bilingual
 
 # Without captions: transcribe → align → translate
 omnicaptions transcribe video.mp4
-omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o aligned.srt
-omnicaptions translate aligned.srt -l zh --bilingual
+omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
+omnicaptions translate video_LaiCut.srt -l zh --bilingual
 ```
 
 ---

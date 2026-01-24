@@ -2,7 +2,7 @@
 
 **视频字幕 So Easy** — Claude Code Caption Skills
 
-> "我需要 Fireship 这个 vibe coding 视频的中英双语字幕 https://youtube.com/watch?v=Tw18-4U7mts"
+> 我需要 Fireship 这个 vibe coding 视频的中英双语字幕 https://youtube.com/watch?v=Tw18-4U7mts 把视频 1080p 下载下来
 >
 > 就这一句，Claude 帮你搞定下载、转录、翻译。
 
@@ -83,13 +83,13 @@ Vibe coding 就是不用自己写代码的编程方式。
 ```bash
 # 有字幕：下载 → 对齐 → 翻译
 omnicaptions download "https://youtube.com/watch?v=xxx"
-omnicaptions LaiCut video.mp4 video.en.vtt -o aligned.srt
-omnicaptions translate aligned.srt -l zh --bilingual
+omnicaptions LaiCut video.mp4 video.en.vtt -o video_LaiCut.srt
+omnicaptions translate video_LaiCut.srt -l zh --bilingual
 
 # 无字幕：转录 → 对齐 → 翻译
 omnicaptions transcribe video.mp4
-omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o aligned.srt
-omnicaptions translate aligned.srt -l zh --bilingual
+omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
+omnicaptions translate video_LaiCut.srt -l zh --bilingual
 ```
 
 ---

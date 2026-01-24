@@ -142,15 +142,15 @@ Generate karaoke subtitles with word-level highlighting. **Requires word-level t
 
 ```bash
 # Basic karaoke (sweep effect - gradual fill)
-omnicaptions convert aligned.json -o output.ass --karaoke
+omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke
 
 # Different effects
-omnicaptions convert aligned.json -o output.ass --karaoke sweep    # Gradual fill (default)
-omnicaptions convert aligned.json -o output.ass --karaoke instant  # Instant highlight
-omnicaptions convert aligned.json -o output.ass --karaoke outline  # Outline then fill
+omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke sweep    # Gradual fill (default)
+omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke instant  # Instant highlight
+omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke outline  # Outline then fill
 
 # LRC karaoke (enhanced word timestamps)
-omnicaptions convert aligned.json -o output.lrc --karaoke
+omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.lrc --karaoke
 ```
 
 | Effect | ASS Tag | Description |
