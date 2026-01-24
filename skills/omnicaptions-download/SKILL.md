@@ -1,12 +1,12 @@
 ---
 name: omnicaptions-download
-description: Use when downloading videos, audio, or subtitles from YouTube and other video platforms. Supports quality selection.
+description: Use when downloading videos, audio, or captions from YouTube and other video platforms. Supports quality selection.
 allowed-tools: Bash(omnicaptions:*)
 ---
 
 # Download from Video Platforms
 
-Download videos, audio, and subtitles from YouTube and 1000+ video platforms using yt-dlp.
+Download videos, audio, and captions from YouTube and 1000+ video platforms using yt-dlp.
 
 ## Confirmation Required
 
@@ -32,13 +32,13 @@ Only proceed with the download command after user confirms.
 ## When to Use
 
 - Download YouTube videos/audio for offline use
-- Extract subtitles from video platforms
+- Extract captions from video platforms
 - Get audio for local transcription or editing
 
 ## When NOT to Use
 
 - Just need transcription (use `/omnicaptions:transcribe` - Gemini handles URLs directly)
-- Converting existing subtitle formats (use `/omnicaptions:convert`)
+- Converting existing caption formats (use `/omnicaptions:convert`)
 
 ## Setup
 
@@ -84,7 +84,7 @@ omnicaptions download "https://youtube.com/watch?v=VIDEO_ID" -o ./downloads/
 
 Downloads produce:
 - **Audio/Video file**: `.m4a`, `.mp4`, etc.
-- **Subtitles** (if available): `.vtt` or `.srt`
+- **Captions** (if available): `.vtt` or `.srt`
 
 ```
 Video: ./VIDEO_ID.mp4
@@ -102,13 +102,13 @@ YouTube, Bilibili, Vimeo, Twitter/X, and [1000+ sites](https://github.com/yt-dlp
 | Skill | Use When |
 |-------|----------|
 | `/omnicaptions:transcribe` | Transcribe downloaded audio/video |
-| `/omnicaptions:translate` | Translate subtitles with Gemini |
-| `/omnicaptions:translate` | Translate subtitles with Claude (no API) |
-| `/omnicaptions:convert` | Convert subtitle format |
+| `/omnicaptions:translate` | Translate captions with Gemini |
+| `/omnicaptions:translate` | Translate captions with Claude (no API) |
+| `/omnicaptions:convert` | Convert caption format |
 
 ### Workflow Examples
 
-**Important**: Generate bilingual subtitles AFTER LaiCut alignment.
+**Important**: Generate bilingual captions AFTER LaiCut alignment.
 
 ```bash
 # Has caption: download → LaiCut align → translate (bilingual)

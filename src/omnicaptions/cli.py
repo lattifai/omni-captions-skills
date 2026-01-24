@@ -164,7 +164,7 @@ def cmd_transcribe(args):
 
 
 def cmd_download(args):
-    """Download audio/video and subtitles from video platforms."""
+    """Download audio/video and captions from video platforms."""
     config = GeminiCaptionConfig(verbose=args.verbose)
     gc = GeminiCaption(config=config)
 
@@ -231,7 +231,7 @@ def cmd_convert(args):
 
 
 def cmd_translate(args):
-    """Translate subtitles."""
+    """Translate captions."""
     if not ensure_api_key(getattr(args, "api_key", None)):
         sys.exit(1)
 
@@ -261,7 +261,7 @@ def cmd_translate(args):
 
 
 def cmd_laicut_align(args):
-    """Align audio with subtitle using LattifAI forced alignment."""
+    """Align audio with caption using LattifAI forced alignment."""
     # Get API key
     api_key = getattr(args, "api_key", None)
     if api_key:
@@ -387,7 +387,7 @@ def main():
     p_convert.set_defaults(func=cmd_convert)
 
     # Translate
-    p_translate = subparsers.add_parser("translate", help="Translate subtitles")
+    p_translate = subparsers.add_parser("translate", help="Translate captions")
     p_translate.add_argument("input", help="Input caption file")
     p_translate.add_argument("-k", "--api-key", dest="api_key", help="Gemini API key")
     p_translate.add_argument(
@@ -403,7 +403,7 @@ def main():
 
     # LaiCut Align
     p_laicut = subparsers.add_parser(
-        "LaiCut", help="Align audio/video with subtitles using LattifAI"
+        "LaiCut", help="Align audio/video with captions using LattifAI"
     )
     p_laicut.add_argument("audio", help="Audio/video file path")
     p_laicut.add_argument("caption", help="Caption file (SRT/VTT/ASS/LRC/TXT/MD)")

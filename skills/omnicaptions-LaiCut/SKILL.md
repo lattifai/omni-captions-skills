@@ -1,6 +1,6 @@
 ---
 name: omnicaptions-LaiCut
-description: Use when user needs accurate/precise subtitle timing, or aligning subtitles with audio/video using forced alignment. Corrects subtitle timing to match actual speech. Uses LattifAI Lattice-1 model.
+description: Use when user needs accurate/precise caption timing, or aligning captions with audio/video using forced alignment. Corrects caption timing to match actual speech. Uses LattifAI Lattice-1 model.
 allowed-tools: Bash(omnicaptions:*)
 ---
 
@@ -13,15 +13,15 @@ LattifAI's audio-text processing toolkit. Currently supports forced alignment, w
 ## When to Use
 
 - **Accurate/precise timing needed** - When user requests accurate timestamps or precise alignment
-- **Sync misaligned subtitles** - Fix timing drift in downloaded captions
+- **Sync misaligned captions** - Fix timing drift in downloaded captions
 - **Align manual transcripts** - Match text to speech precisely
-- **Post-transcription alignment** - Improve timing from auto-generated subtitles
+- **Post-transcription alignment** - Improve timing from auto-generated captions
 - **Multi-format support** - SRT, VTT, ASS, LRC, TXT, MD
 
 ## When NOT to Use
 
 - Need full transcription (use `/omnicaptions:transcribe`)
-- No existing subtitle/transcript (nothing to align)
+- No existing caption/transcript (nothing to align)
 - Very short clips (<5 seconds)
 
 ## Setup
@@ -45,7 +45,7 @@ Then run with `-k <key>`. Key will be saved to config file automatically.
 
 ```bash
 # Basic alignment
-omnicaptions LaiCut audio.mp3 subtitle.srt
+omnicaptions LaiCut audio.mp3 caption.srt
 
 # Specify output file
 omnicaptions LaiCut video.mp4 transcript.md -o aligned.srt
@@ -72,7 +72,7 @@ Is the caption word-level or poorly segmented (e.g., YouTube VTT)?
 - No → Keep original segmentation
 ```
 
-**Use cases**: YouTube VTT, word-aligned captions, messy auto-generated subtitles
+**Use cases**: YouTube VTT, word-aligned captions, messy auto-generated captions
 
 ## LattifAI API Key Error Handling
 
@@ -108,7 +108,7 @@ API KEY verification error: API KEY is invalid or expired.
 
 ### Workflow Examples
 
-**Important**: Generate bilingual subtitles AFTER alignment, since LaiCut aligns text with original audio. No pre-processing needed for audio/video input.
+**Important**: Generate bilingual captions AFTER alignment, since LaiCut aligns text with original audio. No pre-processing needed for audio/video input.
 
 ```bash
 # No caption: transcribe → align → translate

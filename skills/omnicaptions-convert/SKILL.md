@@ -1,12 +1,12 @@
 ---
 name: omnicaptions-convert
-description: Use when converting between caption formats (SRT, VTT, ASS, TTML, Gemini MD, etc.). Supports 30+ subtitle formats.
+description: Use when converting between caption formats (SRT, VTT, ASS, TTML, Gemini MD, etc.). Supports 30+ caption formats.
 allowed-tools: Bash(omnicaptions:*)
 ---
 
 # Caption Format Conversion
 
-Convert between 30+ caption/subtitle formats using `lattifai-captions`.
+Convert between 30+ caption/caption formats using `lattifai-captions`.
 
 ## ⚡ YouTube Workflow
 
@@ -23,7 +23,7 @@ omnicaptions convert transcript.md -o output.vtt
 ## When to Use
 
 - Converting SRT to VTT, ASS, TTML, etc.
-- Converting Gemini markdown transcript to standard subtitle formats
+- Converting Gemini markdown transcript to standard caption formats
 - Converting YouTube VTT (with word-level timestamps) to other formats
 - Batch format conversion
 
@@ -98,7 +98,7 @@ cap.write("output.ttml")
 | `/omnicaptions:transcribe` | Need transcript from audio/video |
 | `/omnicaptions:translate` | Translate with Gemini API |
 | `/omnicaptions:translate` | Translate with Claude (no API key) |
-| `/omnicaptions:download` | Download video/subtitles first |
+| `/omnicaptions:download` | Download video/captions first |
 
 ### Workflow Examples
 

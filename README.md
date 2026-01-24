@@ -39,13 +39,13 @@ claude --plugin-dir ./omni-captions-skills
 |-------|-------------|
 | `/omnicaptions:transcribe` | Transcribe YouTube/video to markdown with timestamps |
 | `/omnicaptions:translate` | Translate captions (Gemini API / Claude) |
-| `/omnicaptions:convert` | Convert between 30+ subtitle formats |
+| `/omnicaptions:convert` | Convert between 30+ caption formats |
 | `/omnicaptions:download` | Download videos/captions from YouTube |
 | `/omnicaptions:LaiCut` | Forced alignment using LattifAI Lattice-1 model |
 
 > **Note**: `/omnicaptions:transcribe` and `/omnicaptions-transcribe` are equivalent.
 
-Powered by [lattifai-captions](https://github.com/lattifai/captions) - supports 30+ subtitle formats including messy YouTube VTT with word-level timestamps.
+Powered by [lattifai-captions](https://github.com/lattifai/captions) - supports 30+ caption formats including messy YouTube VTT with word-level timestamps.
 
 ## Usage Examples
 
@@ -83,7 +83,7 @@ You are the distant road, a lamp within the mountain mist.
 ❯ 下载这个视频 https://youtube.com/watch?v=VIDEO_ID
 ```
 
-### Convert Subtitle Formats
+### Convert Caption Formats
 
 ```
 ❯ 把这个 SRT 转成 VTT 格式
@@ -94,7 +94,7 @@ Claude: [Uses /omnicaptions:convert]
 
 ## Accurate Timing with `LaiCut`
 
-Subtitle timing from different sources often has issues:
+Caption timing from different sources often has issues:
 
 | Source | Problem |
 |--------|---------|
@@ -110,22 +110,22 @@ Subtitle timing from different sources often has issues:
 
 ### Why align before translate?
 
-LaiCut aligns text to speech. Bilingual subtitles contain translations that don't match the audio, so:
+LaiCut aligns text to speech. Bilingual captions contain translations that don't match the audio, so:
 
 1. **Align first** with original language text
 2. **Translate after** to preserve accurate timing
 
 ## Recommended Workflow
 
-For accurate bilingual subtitles, align timing before translation:
+For accurate bilingual captions, align timing before translation:
 
 ```bash
-# With existing subtitles: download → align → translate
+# With existing captions: download → align → translate
 omnicaptions download "https://youtube.com/watch?v=xxx"
 omnicaptions LaiCut xxx.mp4 xxx.en.vtt -o xxx_LaiCut.srt
 omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
 
-# Without subtitles: transcribe → align → translate
+# Without captions: transcribe → align → translate
 omnicaptions transcribe video.mp4
 omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual

@@ -84,7 +84,7 @@ class GeminiCaptionConfig:
 
 class GeminiCaption:
     """
-    Unified class for media transcription and subtitle translation.
+    Unified class for media transcription and caption translation.
 
     Usage:
         gc = GeminiCaption(verbose=True)
@@ -169,11 +169,11 @@ class GeminiCaption:
     def _download_with_ytdlp(
         self, url: str, output_dir: Optional[Path] = None, quality: str = "audio"
     ) -> DownloadResult:
-        """Download audio/video and subtitles using yt-dlp.
+        """Download audio/video and captions using yt-dlp.
 
         Downloads:
         - Audio/Video: Based on quality setting
-        - Subtitles: Manual (user-uploaded) first, then auto-generated, original language
+        - Captions: Manual (user-uploaded) first, then auto-generated, original language
 
         Args:
             url: Video URL
@@ -199,11 +199,11 @@ class GeminiCaption:
             "outtmpl": str(output_dir / "%(id)s.%(ext)s"),
             "quiet": not self.config.verbose,
             "no_warnings": not self.config.verbose,
-            # Subtitles: download if available
+            # Captions: download if available
             "writesubtitles": True,
             "writeautomaticsub": True,  # Also try auto-generated
             "subtitlesformat": "vtt/srt/best",
-            # Ignore subtitle download errors (e.g., 429 rate limit)
+            # Ignore caption download errors (e.g., 429 rate limit)
             "ignoreerrors": "only_download",
         }
 
@@ -214,7 +214,7 @@ class GeminiCaption:
         if self.config.verbose:
             self.logger.info(f"Downloading with yt-dlp ({quality}): {url}")
 
-        # First pass: extract info to get available subtitles
+        # First pass: extract info to get available captions
         with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
             info = ydl.extract_info(url, download=False)
             video_id = info.get("id", "video")
@@ -231,7 +231,7 @@ class GeminiCaption:
             if self.config.verbose:
                 self.logger.info(f"Detected original language: {original_lang}")
 
-            # Determine best subtitle language
+            # Determine best caption language
             subtitles = info.get("subtitles", {})  # Manual/uploaded
             auto_subs = info.get("automatic_captions", {})  # Auto-generated
 
@@ -251,7 +251,7 @@ class GeminiCaption:
             sub_lang = None
             sub_source = None
 
-            # 1. Check manual subtitles for original language first
+            # 1. Check manual captions for original language first
             for lang in preferred_langs[: len(preferred_langs)]:
                 if lang in subtitles:
                     sub_lang = lang
@@ -268,7 +268,7 @@ class GeminiCaption:
                         sub_source = "auto"
                         break
 
-            # 3. Fall back to any available subtitle
+            # 3. Fall back to any available caption
             if not sub_lang:
                 for lang in preferred_langs:
                     if lang in subtitles:
@@ -288,13 +288,13 @@ class GeminiCaption:
                         if sub_lang.startswith(original_lang)
                         else "≠ different from audio"
                     )
-                    self.logger.info(f"Selected {sub_source} subtitles: {sub_lang} ({lang_match})")
+                    self.logger.info(f"Selected {sub_source} caption: {sub_lang} ({lang_match})")
             else:
-                # No subtitles available, disable subtitle download
+                # No captions available, disable caption download
                 ydl_opts["writesubtitles"] = False
                 ydl_opts["writeautomaticsub"] = False
                 if self.config.verbose:
-                    self.logger.info("No subtitles available")
+                    self.logger.info("No captions available")
 
         # Second pass: download with determined options
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -331,7 +331,7 @@ class GeminiCaption:
             if audio_path:
                 self.logger.info(f"Downloaded audio: {audio_path}")
             if caption_path:
-                self.logger.info(f"Downloaded subtitles: {caption_path}")
+                self.logger.info(f"Downloaded caption: {caption_path}")
 
         return DownloadResult(
             audio_path=audio_path,
@@ -349,7 +349,7 @@ class GeminiCaption:
         output_dir: Optional[Union[str, Path]] = None,
         quality: str = "audio",
     ) -> DownloadResult:
-        """Download audio/video and subtitles from a video URL.
+        """Download audio/video and captions from a video URL.
 
         Args:
             url: Video URL (YouTube, Bilibili, etc.)
@@ -486,7 +486,7 @@ Include speaker labels when multiple speakers are present."""
         lang_name = LANGUAGE_NAMES.get(target_lang, target_lang)
 
         if bilingual:
-            instruction = f"""Translate subtitles to {lang_name}. Return JSON array with "original" and "translated" keys.
+            instruction = f"""Translate captions to {lang_name}. Return JSON array with "original" and "translated" keys.
 
 Rules:
 1. ONLY translate the lines in "to_translate" - context is for reference only
@@ -495,7 +495,7 @@ Rules:
 4. Adapt idioms and cultural references appropriately
 5. Keep the exact same order and count as input"""
         else:
-            instruction = f"""Translate subtitles to {lang_name}. Return JSON array of translated strings.
+            instruction = f"""Translate captions to {lang_name}. Return JSON array of translated strings.
 
 Rules:
 1. ONLY translate the lines in "to_translate" - context is for reference only
@@ -550,7 +550,7 @@ Rules:
         target_lang: str,
         bilingual: bool = False,
     ) -> Path:
-        """Translate subtitle file."""
+        """Translate caption file."""
         input_path = Path(input_file)
         output_path = Path(output_file)
 
@@ -620,7 +620,7 @@ Rules:
         target_lang: str,
         bilingual: bool = False,
     ) -> Path:
-        """Translate subtitle file (sync)."""
+        """Translate caption file (sync)."""
         return asyncio.run(self.translate_async(input_file, output_file, target_lang, bilingual))
 
     # ==================== Utilities ====================

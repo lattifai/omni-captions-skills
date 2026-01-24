@@ -17,7 +17,7 @@
       },
       "description": "Transcribe, translate, convert, and align captions using AI APIs",
       "version": "0.1.0",
-      "keywords": ["transcription", "gemini", "youtube", "subtitles", "translation", "caption", "alignment", "lattifai"],
+      "keywords": ["transcription", "gemini", "youtube", "captions", "translation", "caption", "alignment", "lattifai"],
       "license": "MIT",
       "category": "media",
       "strict": true

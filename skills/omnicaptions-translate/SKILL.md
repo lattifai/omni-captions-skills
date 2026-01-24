@@ -1,6 +1,6 @@
 ---
 name: omnicaptions-translate
-description: Use when translating subtitles/captions to another language. Supports bilingual output and context-aware translation. Default uses Claude native, Gemini API optional.
+description: Use when translating captions/captions to another language. Supports bilingual output and context-aware translation. Default uses Claude native, Gemini API optional.
 allowed-tools: Bash(omnicaptions:*), Read, Write, Glob
 ---
 
@@ -12,7 +12,7 @@ Use Gemini API only when user explicitly requests it.
 
 ## Default Workflow (Claude)
 
-1. Read the subtitle file
+1. Read the caption file
 2. Translate using Claude's native ability
 3. Write output with `_Claude_{lang}` suffix
 
@@ -29,7 +29,7 @@ Output: `input_Gemini_zh.srt`
 ## When to Use
 
 - Translate SRT/VTT/ASS to another language
-- Generate bilingual subtitles (original + translation)
+- Generate bilingual captions (original + translation)
 - Translate YouTube video transcripts
 - Need context-aware translation (not line-by-line)
 
@@ -140,7 +140,7 @@ from omnicaptions import GeminiCaption
 
 gc = GeminiCaption()
 gc._translation_prompt = """
-You are translating subtitles for a medical documentary.
+You are translating captions for a medical documentary.
 Use formal Chinese medical terminology.
 Glossary: {glossary}
 """
@@ -156,7 +156,7 @@ gc.translate("input.srt", "output.srt", "zh")
 
 ### 3. Review Bilingual Output
 
-Bilingual subtitles let viewers verify translation quality - ideal for:
+Bilingual captions let viewers verify translation quality - ideal for:
 - Language learners
 - Quality assurance
 - Accessibility
@@ -215,9 +215,9 @@ All formats from `lattifai-captions`: SRT, VTT, ASS, TTML, JSON, Gemini MD, etc.
 
 ## References
 
-- [Subtitle LLM Translator](https://github.com/yigitkonur/subtitle-llm-translator) - Context window approach
-- [Subtitle Translator](https://github.com/rockbenben/subtitle-translator) - Batch processing
-- [Subtitles.Translate.Agent](https://github.com/subtitlesdog/Subtitles.Translate.Agent) - Multi-agent workflow
+- [Caption LLM Translator](https://github.com/yigitkonur/caption-llm-translator) - Context window approach
+- [Caption Translator](https://github.com/rockbenben/caption-translator) - Batch processing
+- [Captions.Translate.Agent](https://github.com/captionsdog/Captions.Translate.Agent) - Multi-agent workflow
 
 ## Related Skills
 
@@ -226,11 +226,11 @@ All formats from `lattifai-captions`: SRT, VTT, ASS, TTML, JSON, Gemini MD, etc.
 | `/omnicaptions:transcribe` | Need transcript first |
 | `/omnicaptions:LaiCut` | Align timing before translation |
 | `/omnicaptions:convert` | Convert format after translation |
-| `/omnicaptions:download` | Download subtitles to translate |
+| `/omnicaptions:download` | Download captions to translate |
 
 ### Workflow Examples
 
-**Important**: Generate bilingual subtitles AFTER LaiCut alignment.
+**Important**: Generate bilingual captions AFTER LaiCut alignment.
 
 ```bash
 # Has caption: download → LaiCut align

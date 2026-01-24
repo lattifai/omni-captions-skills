@@ -1,4 +1,4 @@
-"""Gemini Caption - Media transcription and subtitle translation using Gemini API.
+"""Gemini Caption - Media transcription and caption translation using Gemini API.
 
 Usage:
     from gemini_caption import GeminiCaption

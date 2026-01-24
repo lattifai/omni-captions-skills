@@ -54,7 +54,7 @@ omnicaptions transcribe video.mp4
 | Method | Description |
 |--------|-------------|
 | `transcribe(path)` | Transcribe file or URL (sync) |
-| `translate(in, out, lang)` | Translate subtitles |
+| `translate(in, out, lang)` | Translate captions |
 | `write(text, path)` | Save text to file |
 
 ## Setup
@@ -101,7 +101,7 @@ omnicaptions transcribe -l zh video.mp4  # Force Chinese
 | `--bilingual` | Bilingual output (with -t) |
 | `-v, --verbose` | Verbose output |
 
-## Bilingual Subtitles (Optional)
+## Bilingual Captions (Optional)
 
 If user requests bilingual output, add `-t <lang> --bilingual`:
 

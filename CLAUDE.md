@@ -4,7 +4,7 @@ Guidance for Claude Code when working with this repository.
 
 ## Project Overview
 
-**omni-captions-skills** - Claude Code plugin for media transcription and subtitle translation using AI APIs.
+**omni-captions-skills** - Claude Code plugin for media transcription and caption translation using AI APIs.
 
 ## Structure
 
