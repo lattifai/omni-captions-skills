@@ -309,6 +309,8 @@ class TestConvertIntegration:
             to=None,
         )
         setattr(args, "from", None)
+        setattr(args, "style", None)
+        setattr(args, "karaoke", None)
 
         cmd_convert(args)
 
@@ -327,6 +329,8 @@ class TestConvertIntegration:
             to=None,
         )
         setattr(args, "from", None)
+        setattr(args, "style", None)
+        setattr(args, "karaoke", None)
 
         cmd_convert(args)
 
@@ -345,6 +349,8 @@ class TestConvertIntegration:
             to=None,
         )
         setattr(args, "from", None)
+        setattr(args, "style", None)
+        setattr(args, "karaoke", None)
 
         cmd_convert(args)
 
@@ -362,6 +368,8 @@ class TestConvertIntegration:
             to=None,
         )
         setattr(args, "from", "vtt")
+        setattr(args, "style", None)
+        setattr(args, "karaoke", None)
 
         cmd_convert(args)
 
@@ -377,6 +385,8 @@ class TestConvertIntegration:
             to="srt",  # Force SRT format
         )
         setattr(args, "from", None)
+        setattr(args, "style", None)
+        setattr(args, "karaoke", None)
 
         cmd_convert(args)
 
@@ -394,10 +404,150 @@ class TestConvertIntegration:
             verbose=False,
             to="ass",
         )
-        setattr(args, "from", "vtt")
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+        setattr(args, "karaoke", None)
 
         cmd_convert(args)
 
         assert output_file.exists()
         content = output_file.read_text()
         assert "[Script Info]" in content
+
+
+TEST_KARAOKE_JSON = TEST_DATA_DIR / "karaoke_test.json"
+
+
+class TestKaraokeConvert:
+    """Test karaoke conversion features."""
+
+    @pytest.fixture
+    def temp_output(self, tmp_path):
+        """Create temporary output path."""
+        return tmp_path / "output"
+
+    def test_karaoke_ass_sweep(self, temp_output):
+        """Test karaoke ASS output with sweep effect."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(TEST_KARAOKE_JSON),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke="sweep",
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Check for karaoke tags
+        assert "\\kf" in content
+        assert "Karaoke" in content  # Karaoke style
+        assert "Hello" in content
+
+    def test_karaoke_ass_instant(self, temp_output):
+        """Test karaoke ASS output with instant effect."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(TEST_KARAOKE_JSON),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke="instant",
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Check for instant karaoke tags (not kf)
+        assert "{\\k" in content
+        assert "\\kf" not in content
+
+    def test_karaoke_ass_outline(self, temp_output):
+        """Test karaoke ASS output with outline effect."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(TEST_KARAOKE_JSON),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke="outline",
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Check for outline karaoke tags
+        assert "\\ko" in content
+
+    def test_karaoke_lrc(self, temp_output):
+        """Test karaoke LRC output with word timestamps."""
+        output_file = temp_output.with_suffix(".lrc")
+        args = argparse.Namespace(
+            input=str(TEST_KARAOKE_JSON),
+            output=str(output_file),
+            verbose=False,
+            to="lrc",
+            karaoke="sweep",
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Check for enhanced LRC word timestamps
+        assert "<" in content  # Word timestamp markers
+        assert "Hello" in content
+
+    def test_karaoke_default_effect(self, temp_output):
+        """Test --karaoke without effect defaults to sweep."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(TEST_KARAOKE_JSON),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke="sweep",  # Default when --karaoke is used without value
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        assert "\\kf" in content
+
+    def test_no_karaoke_no_tags(self, temp_output):
+        """Test conversion without karaoke has no karaoke tags."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(TEST_KARAOKE_JSON),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke=None,
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Should not have karaoke tags
+        assert "\\kf" not in content
+        assert "\\ko" not in content
+        # But should have content
+        assert "Hello world" in content

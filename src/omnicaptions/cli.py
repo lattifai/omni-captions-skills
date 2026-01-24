@@ -332,7 +332,23 @@ def cmd_convert(args):
         if args.verbose:
             print(f"Using ASS style preset: {style_name}", file=sys.stderr)
 
-    cap.write(str(output_path), output_format=output_format, metadata=metadata)
+    # Handle karaoke mode
+    karaoke_config = None
+    karaoke_effect = getattr(args, "karaoke", None)
+    if karaoke_effect:
+        from lattifai.caption.config import KaraokeConfig
+
+        karaoke_config = KaraokeConfig(enabled=True, effect=karaoke_effect)
+        if args.verbose:
+            print(f"Karaoke mode: {karaoke_effect}", file=sys.stderr)
+
+    cap.write(
+        str(output_path),
+        output_format=output_format,
+        metadata=metadata,
+        word_level=karaoke_effect is not None,
+        karaoke_config=karaoke_config,
+    )
     if args.verbose:
         print(f"Converted: {input_path} -> {output_path}", file=sys.stderr)
 
@@ -507,6 +523,13 @@ def main():
         "--style",
         choices=["default", "top", "bilingual", "yellow"],
         help="ASS style preset: default (white, bottom), top (white, top), bilingual (white+yellow), yellow",
+    )
+    p_convert.add_argument(
+        "--karaoke",
+        nargs="?",
+        const="sweep",
+        choices=["sweep", "instant", "outline"],
+        help="Enable karaoke mode (requires word-level timing). Effects: sweep (default), instant, outline",
     )
     p_convert.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     p_convert.set_defaults(func=cmd_convert)

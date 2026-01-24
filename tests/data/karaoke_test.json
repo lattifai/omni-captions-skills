@@ -1,0 +1,22 @@
+[
+    {
+        "text": "Hello world",
+        "start": 0.0,
+        "end": 2.5,
+        "words": [
+            {"word": "Hello", "start": 0.0, "end": 0.8},
+            {"word": "world", "start": 1.0, "end": 2.5}
+        ]
+    },
+    {
+        "text": "This is a test",
+        "start": 3.0,
+        "end": 5.0,
+        "words": [
+            {"word": "This", "start": 3.0, "end": 3.3},
+            {"word": "is", "start": 3.4, "end": 3.6},
+            {"word": "a", "start": 3.7, "end": 3.8},
+            {"word": "test", "start": 3.9, "end": 5.0}
+        ]
+    }
+]
