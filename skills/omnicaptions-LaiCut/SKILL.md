@@ -44,11 +44,13 @@ Then run with `-k <key>`. Key will be saved to config file automatically.
 ## CLI Usage
 
 ```bash
-# Basic alignment
+# Basic alignment (default: JSON output with word-level timing)
 omnicaptions LaiCut audio.mp3 caption.srt
+# → caption_LaiCut.json (preserves word-level timing)
 
-# Specify output file
+# Specify output format
 omnicaptions LaiCut video.mp4 transcript.md -o aligned.srt
+omnicaptions LaiCut video.mp4 transcript.md -o aligned.json  # preserves word timing
 
 # Smart sentence segmentation (for word-level captions like YouTube VTT)
 omnicaptions LaiCut video.mp4 caption.vtt --split-sentence
@@ -56,11 +58,35 @@ omnicaptions LaiCut video.mp4 caption.vtt --split-sentence
 
 | Option | Description |
 |--------|-------------|
-| `-o, --output` | Output file (default: `<caption>_LaiCut.<ext>`) |
-| `-f, --format` | Output format (default: same as input) |
+| `-o, --output` | Output file (default: `<caption>_LaiCut.json`) |
+| `-f, --format` | Output format (default: json) |
 | `-k, --api-key` | LattifAI API key |
 | `--split-sentence` | AI-powered semantic sentence segmentation |
 | `-v, --verbose` | Show progress |
+
+## JSON Output (Recommended)
+
+JSON output preserves **word-level timing** for downstream tasks:
+
+```json
+[
+  {
+    "text": "Hello world",
+    "start": 0.0,
+    "end": 2.5,
+    "words": [
+      {"word": "Hello", "start": 0.0, "end": 0.5},
+      {"word": "world", "start": 0.6, "end": 2.5}
+    ]
+  }
+]
+```
+
+Convert JSON to other formats later:
+```bash
+omnicaptions convert aligned.json -o output.srt
+omnicaptions convert aligned.json -o output.ass --style bilingual
+```
 
 ## Ask User: Enable Smart Sentence Segmentation?
 

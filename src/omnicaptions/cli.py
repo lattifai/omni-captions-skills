@@ -396,20 +396,32 @@ def cmd_laicut_align(args):
     from lattifai.client import LattifAI
     from lattifai.config import AlignmentConfig, CaptionConfig, ClientConfig
 
-    # Determine output path
+    # Determine output path and format
     if args.output:
         output_path = Path(args.output)
     else:
-        suffix = f".{args.format}" if args.format else caption_path.suffix
+        # Default to JSON for word-level timing preservation
+        suffix = f".{args.format}" if args.format else ".json"
         output_path = caption_path.with_stem(f"{caption_path.stem}_LaiCut").with_suffix(suffix)
+
+    # Enable word_level for JSON output to preserve word timing
+    is_json_output = str(output_path).lower().endswith(".json")
+    word_level = is_json_output or getattr(args, "word_level", False)
+
+    if args.verbose and is_json_output:
+        print("JSON output: word-level timing enabled", file=sys.stderr)
 
     try:
         client = LattifAI(
             client_config=ClientConfig(api_key=api_key),
-            alignment_config=AlignmentConfig(),
+            alignment_config=AlignmentConfig(
+                model_name="LattifAI/Lattice-1",
+                model_hub="modelscope"
+            ),
             caption_config=CaptionConfig(
                 output_path=str(output_path),
                 split_sentence=getattr(args, "split_sentence", False),
+                word_level=word_level,
             ),
         )
 
