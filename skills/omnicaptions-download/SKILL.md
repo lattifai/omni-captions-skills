@@ -43,11 +43,7 @@ Only proceed with the download command after user confirms.
 ## Setup
 
 ```bash
-pip install "omnicaptions @ git+https://github.com/lattifai/omni-captions-skills.git"
-```
-
-Or install from GitHub packages:
-```bash
+pip install https://github.com/lattifai/omni-captions-skills/raw/main/packages/lattifai_captions-0.1.0.tar.gz
 pip install https://github.com/lattifai/omni-captions-skills/raw/main/packages/omnicaptions-0.1.0.tar.gz
 ```
 

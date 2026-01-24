@@ -27,7 +27,9 @@ LattifAI's audio-text processing toolkit. Currently supports forced alignment, w
 ## Setup
 
 ```bash
-pip install "omnicaptions @ git+https://github.com/lattifai/omni-captions-skills.git"
+pip install "lattifai-captions[splitting] @ https://github.com/lattifai/omni-captions-skills/raw/main/packages/lattifai_captions-0.1.0.tar.gz"
+pip install https://github.com/lattifai/omni-captions-skills/raw/main/packages/omnicaptions-0.1.0.tar.gz
+pip install https://github.com/lattifai/omni-captions-skills/raw/main/packages/lattifai_core-0.6.1.tar.gz
 pip install "lattifai[alignment] @ https://github.com/lattifai/omni-captions-skills/raw/main/packages/lattifai-1.2.2.tar.gz"
 ```
 
@@ -42,13 +44,12 @@ Then run with `-k <key>`. Key will be saved to config file automatically.
 ## CLI Usage
 
 ```bash
-# Basic alignment (default: JSON output with word-level timing)
+# Basic alignment (default: JSON with word-level timing, RECOMMENDED)
 omnicaptions LaiCut audio.mp3 caption.srt
-# → caption_LaiCut.json (preserves word-level timing)
+# → caption_LaiCut.json
 
-# Specify output format
-omnicaptions LaiCut video.mp4 transcript.md -o transcript_LaiCut.srt
-omnicaptions LaiCut video.mp4 transcript.md -o transcript_LaiCut.json  # preserves word timing
+# Then convert to desired format (preserves word timing in JSON for future use)
+omnicaptions convert caption_LaiCut.json -o caption_LaiCut.srt
 
 # Smart sentence segmentation (for word-level captions like YouTube VTT)
 omnicaptions LaiCut video.mp4 caption.vtt --split-sentence
@@ -150,16 +151,23 @@ API KEY verification error: API KEY is invalid or expired.
 
 ### Workflow Examples
 
-**Important**: Generate bilingual captions AFTER alignment, since LaiCut aligns text with original audio. No pre-processing needed for audio/video input.
+**Important**:
+- LaiCut outputs JSON by default (preserves word-level timing)
+- Convert to SRT/ASS when needed for playback or translation
+- Generate bilingual captions AFTER alignment
 
 ```bash
-# No caption: transcribe → align → translate
+# No caption: transcribe → align (JSON) → convert → translate
 omnicaptions transcribe video.mp4
-omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
+omnicaptions LaiCut video.mp4 video_GeminiUnd.md
+# → video_GeminiUnd_LaiCut.json (word-level timing preserved)
+omnicaptions convert video_GeminiUnd_LaiCut.json -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual
 
-# Has caption: download → align → translate
+# Has caption: download → align (JSON) → convert → translate
 omnicaptions download "https://youtu.be/xxx"
-omnicaptions LaiCut xxx.mp4 xxx.en.vtt -o xxx_LaiCut.srt
+omnicaptions LaiCut xxx.mp4 xxx.en.vtt
+# → xxx.en_LaiCut.json
+omnicaptions convert xxx.en_LaiCut.json -o xxx_LaiCut.srt
 omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
 ```
