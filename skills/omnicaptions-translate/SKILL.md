@@ -244,6 +244,22 @@ omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 # Then Claude translates video_LaiCut.srt → video_LaiCut_Claude_zh.srt
 ```
 
+### Large JSON Files
+
+LaiCut outputs JSON with word-level timing. **For translation, convert to SRT first** (much smaller):
+
+```bash
+# JSON (word-level, large) → SRT (segment-level, small)
+omnicaptions convert xxx_LaiCut.json -o xxx_LaiCut.srt
+
+# Then translate the SRT
+omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
+
+# Or Claude translates directly
+```
+
+Why? JSON preserves word timing for karaoke, but translation only needs segment text. SRT is 10-20x smaller.
+
 ## Claude Translation Rules (Default)
 
 1. **Preserve format exactly** - Keep all timing codes, formatting tags, style definitions

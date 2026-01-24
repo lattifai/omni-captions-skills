@@ -82,10 +82,22 @@ JSON output preserves **word-level timing** for downstream tasks:
 ]
 ```
 
-Convert JSON to other formats later:
+Convert JSON to other formats:
 ```bash
+# For playback/editing
 omnicaptions convert aligned.json -o output.srt
+
+# For bilingual ASS
 omnicaptions convert aligned.json -o output.ass --style bilingual
+
+# For karaoke
+omnicaptions convert aligned.json -o karaoke.ass --karaoke
+```
+
+**For translation**: Convert to SRT first (JSON is too large for Claude to read):
+```bash
+omnicaptions convert aligned.json -o aligned.srt
+# Then translate the SRT
 ```
 
 ## Ask User: Enable Smart Sentence Segmentation?
