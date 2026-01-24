@@ -144,7 +144,7 @@ omnicaptions convert input.srt -o output.ass --resolution 4k --fontsize 80
 
 | Resolution | PlayRes | Auto FontSize |
 |------------|---------|---------------|
-| 480p | 854×480 | 21 |
+| 480p | 854×480 | 24 |
 | 720p | 1280×720 | 32 |
 | 1080p | 1920×1080 | 48 (default) |
 | 2K | 2560×1440 | 64 |

@@ -234,7 +234,7 @@ def build_ass_metadata(
 
     Args:
         preset_name: Style preset name
-        fontsize: Font size (default 48 for 1080p, use 72 for 4K, 36 for 720p)
+        fontsize: Font size (default 48 for 1080p, 96 for 4K, 32 for 720p)
         resolution: Video resolution (width, height), default 1920x1080
     """
     preset = ASS_STYLE_PRESETS.get(preset_name, ASS_STYLE_PRESETS["default"])
