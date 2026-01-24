@@ -94,7 +94,7 @@ omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual
 ```
 
-## Credits
-* Gemini 转录提示词源自 [@dotey](https://x.com/dotey) 的[推文](https://x.com/dotey/status/1971810075867046131)，[略有修改](https://github.com/lattifai/omni-captions-skills/commit/3f85975)。
-* 基于 [lattifai-captions](https://github.com/lattifai/captions) 构建
-* MIT License
+---
+Credits: [@dotey](https://x.com/dotey) 的[转录提示词](https://x.com/dotey/status/1971810075867046131) | 基于 [lattifai-captions](https://github.com/lattifai/captions)
+
+[MIT License](LICENSE)

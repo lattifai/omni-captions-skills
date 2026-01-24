@@ -95,7 +95,6 @@ omnicaptions translate video_LaiCut.srt -l zh --bilingual
 ```
 
 ---
+Credits: [@dotey](https://x.com/dotey) for the [transcription prompt](https://x.com/dotey/status/1971810075867046131) | Built on [lattifai-captions](https://github.com/lattifai/captions)
 
-**Credits:** Gemini transcription prompt inspired by [@dotey](https://x.com/dotey)'s [tweet](https://x.com/dotey/status/1971810075867046131), with [minor modifications](https://github.com/lattifai/omni-captions-skills/commit/3f85975).
-
-Powered by [lattifai-captions](https://github.com/lattifai/captions) | MIT License
+[MIT License](LICENSE)
