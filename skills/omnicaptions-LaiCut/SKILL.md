@@ -27,10 +27,8 @@ LattifAI's audio-text processing toolkit. Currently supports forced alignment, w
 ## Setup
 
 ```bash
-pip install $PLUGIN_DIR/packages/lattifai_core-*.tar.gz \
-  "$(ls $PLUGIN_DIR/packages/lattifai_captions-*.tar.gz)[splitting]" \
-  $PLUGIN_DIR/packages/omnicaptions-*.tar.gz
-pip install "$(ls $PLUGIN_DIR/packages/lattifai-*.tar.gz)[alignment]"
+pip install "omnicaptions @ git+https://github.com/lattifai/omni-captions-skills.git"
+pip install "lattifai[alignment] @ https://github.com/lattifai/omni-captions-skills/raw/main/packages/lattifai-1.2.2.tar.gz"
 ```
 
 ## API Key

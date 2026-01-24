@@ -41,9 +41,7 @@ Output: `input_Gemini_zh.srt`
 ## Setup
 
 ```bash
-pip install $PLUGIN_DIR/packages/lattifai_core-*.tar.gz \
-  "$(ls $PLUGIN_DIR/packages/lattifai_captions-*.tar.gz)[splitting]" \
-  $PLUGIN_DIR/packages/omnicaptions-*.tar.gz
+pip install "omnicaptions @ git+https://github.com/lattifai/omni-captions-skills.git"
 ```
 
 ## API Key
