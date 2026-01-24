@@ -2,6 +2,8 @@
 
 **视频字幕 So Easy** — Claude Code Caption Skills
 
+[English](README.md)
+
 > 我需要 Fireship 这个 vibe coding 视频的中英双语字幕 https://youtube.com/watch?v=Tw18-4U7mts 把视频 1080p 下载下来
 >
 > 就这一句，Claude 帮你搞定下载、转录、翻译。
@@ -92,8 +94,7 @@ omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual
 ```
 
----
-
-**Credits:** Gemini 转录提示词源自 [@dotey](https://x.com/dotey) 的[推文](https://x.com/dotey/status/1971810075867046131)，[略有修改](https://github.com/lattifai/omni-captions-skills/commit/3f85975)。
-
-基于 [lattifai-captions](https://github.com/lattifai/captions) 构建 | MIT License
+## Credits
+* Gemini 转录提示词源自 [@dotey](https://x.com/dotey) 的[推文](https://x.com/dotey/status/1971810075867046131)，[略有修改](https://github.com/lattifai/omni-captions-skills/commit/3f85975)。
+* 基于 [lattifai-captions](https://github.com/lattifai/captions) 构建
+* MIT License
