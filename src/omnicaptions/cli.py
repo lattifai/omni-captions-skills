@@ -281,9 +281,10 @@ def cmd_convert(args):
         print(f"Error: Input file not found: {input_path}", file=sys.stderr)
         sys.exit(1)
 
-    # Check if bilingual style - need to preserve line breaks
+    # Check if bilingual mode - need to preserve line breaks
     style_name = getattr(args, "style", None)
-    preserve_newlines = style_name == "bilingual"
+    line2_color = getattr(args, "line2_color", None)
+    preserve_newlines = style_name == "bilingual" or line2_color is not None
 
     # Determine input format
     input_format = getattr(args, "from", None)  # --from is a reserved word
@@ -316,21 +317,38 @@ def cmd_convert(args):
             get_default_output_dir(args.input) / f"{get_stem_from_input(args.input)}{default_ext}"
         )
 
-    # Handle ASS style presets
+    # Handle ASS style presets and custom colors
     metadata = None
     style_name = getattr(args, "style", None)
+    line1_color = getattr(args, "line1_color", None)
+    line2_color = getattr(args, "line2_color", None)
     is_ass_output = output_format == "ass" or str(output_path).lower().endswith(".ass")
 
-    if is_ass_output and style_name:
-        preset = ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"])
-        metadata = build_ass_metadata(style_name)
+    if is_ass_output:
+        # Start with preset or default
+        if style_name:
+            preset = ASS_STYLE_PRESETS.get(style_name, ASS_STYLE_PRESETS["default"])
+            metadata = build_ass_metadata(style_name)
+            if args.verbose:
+                print(f"Using ASS style preset: {style_name}", file=sys.stderr)
+        else:
+            preset = ASS_STYLE_PRESETS["default"]
+            metadata = None
 
-        # Apply bilingual colors if preset has line2_color
-        if "line2_color" in preset:
-            apply_bilingual_colors(cap, preset["line2_color"])
+        # Override with custom colors
+        if line1_color:
+            if metadata is None:
+                metadata = build_ass_metadata("default")
+            metadata["ass_styles"]["Default"]["primarycolor"] = hex_to_ass_color(line1_color)
+            if args.verbose:
+                print(f"Line 1 color: {line1_color}", file=sys.stderr)
 
-        if args.verbose:
-            print(f"Using ASS style preset: {style_name}", file=sys.stderr)
+        # Handle line2 color (bilingual mode)
+        actual_line2_color = line2_color or preset.get("line2_color")
+        if actual_line2_color:
+            apply_bilingual_colors(cap, actual_line2_color)
+            if args.verbose:
+                print(f"Line 2 color: {actual_line2_color}", file=sys.stderr)
 
     # Handle karaoke mode
     karaoke_config = None
@@ -523,6 +541,16 @@ def main():
         "--style",
         choices=["default", "top", "bilingual", "yellow"],
         help="ASS style preset: default (white, bottom), top (white, top), bilingual (white+yellow), yellow",
+    )
+    p_convert.add_argument(
+        "--line1-color",
+        metavar="COLOR",
+        help="First line color (#RRGGBB), e.g. #FFFFFF for white",
+    )
+    p_convert.add_argument(
+        "--line2-color",
+        metavar="COLOR",
+        help="Second line color (#RRGGBB), e.g. #FFFF00 for yellow",
     )
     p_convert.add_argument(
         "--karaoke",

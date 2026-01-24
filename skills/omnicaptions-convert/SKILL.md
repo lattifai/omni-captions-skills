@@ -97,10 +97,26 @@ Hello World
 你好世界
 ```
 
-Use `--style bilingual` to make the second line yellow:
+Use `--style bilingual` or custom colors:
 ```bash
+# Preset: white + yellow
 omnicaptions convert bilingual.srt -o output.ass --style bilingual
+
+# Custom colors: green English + yellow Chinese
+omnicaptions convert bilingual.srt -o output.ass --line1-color "#00FF00" --line2-color "#FFFF00"
+
+# Mix preset with custom line2 color
+omnicaptions convert bilingual.srt -o output.ass --style default --line2-color "#FF6600"
 ```
+
+### Custom Color Options
+
+| Option | Description |
+|--------|-------------|
+| `--line1-color "#RRGGBB"` | First line (original) color |
+| `--line2-color "#RRGGBB"` | Second line (translation) color |
+
+Common colors: `#FFFFFF` (white), `#FFFF00` (yellow), `#00FF00` (green), `#00FFFF` (cyan), `#FF6600` (orange)
 
 ## Karaoke Mode
 

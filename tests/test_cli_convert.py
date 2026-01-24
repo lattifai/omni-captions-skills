@@ -416,6 +416,94 @@ class TestConvertIntegration:
 
 
 TEST_KARAOKE_JSON = TEST_DATA_DIR / "karaoke_test.json"
+TEST_BILINGUAL_SRT = TEST_DATA_DIR / "bilingual_test.srt"
+
+
+class TestCustomColorConvert:
+    """Test custom color options for ASS output."""
+
+    @pytest.fixture
+    def temp_output(self, tmp_path):
+        """Create temporary output path."""
+        return tmp_path / "output"
+
+    @pytest.fixture
+    def bilingual_srt(self, tmp_path):
+        """Create bilingual SRT test file."""
+        srt_file = tmp_path / "bilingual.srt"
+        srt_file.write_text(
+            "1\n00:00:01,000 --> 00:00:03,000\nHello World\n你好世界\n\n"
+            "2\n00:00:04,000 --> 00:00:06,000\nGoodbye\n再见\n"
+        )
+        return srt_file
+
+    def test_custom_line2_color(self, temp_output, bilingual_srt):
+        """Test custom --line2-color applies color tag."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(bilingual_srt),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke=None,
+            line1_color=None,
+            line2_color="#FF6600",
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Check for color tag (orange in BGR format)
+        assert "\\c&H000066FF&" in content
+        assert "\\N" in content  # Line break preserved
+
+    def test_custom_line1_color(self, temp_output, bilingual_srt):
+        """Test custom --line1-color changes primary color."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(bilingual_srt),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke=None,
+            line1_color="#00FF00",
+            line2_color=None,
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Check for green primary color in style (BGR format)
+        assert "&H0000FF00" in content
+
+    def test_both_custom_colors(self, temp_output, bilingual_srt):
+        """Test both --line1-color and --line2-color."""
+        output_file = temp_output.with_suffix(".ass")
+        args = argparse.Namespace(
+            input=str(bilingual_srt),
+            output=str(output_file),
+            verbose=False,
+            to="ass",
+            karaoke=None,
+            line1_color="#00FF00",
+            line2_color="#FFFF00",
+        )
+        setattr(args, "from", None)
+        setattr(args, "style", None)
+
+        cmd_convert(args)
+
+        assert output_file.exists()
+        content = output_file.read_text()
+        # Green primary, yellow line2
+        assert "&H0000FF00" in content  # Green in style
+        assert "\\c&H0000FFFF&" in content  # Yellow in dialogue
 
 
 class TestKaraokeConvert:
