@@ -38,6 +38,7 @@ dev = [
 ]
 laicut = [
     "lattifai-core",
+    "lattifai-captions[splitting]>=0.1.0",
     "lattifai[alignment]",
 ]
 all = [

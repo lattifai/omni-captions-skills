@@ -107,17 +107,23 @@ YouTube, Bilibili, Vimeo, Twitter/X, and [1000+ sites](https://github.com/yt-dlp
 
 ### Workflow Examples
 
-**Important**: Generate bilingual captions AFTER LaiCut alignment.
+**Important**: Generate bilingual captions AFTER LaiCut alignment. Preserve language tag in filename.
 
 ```bash
-# Has caption: download → LaiCut align → translate (bilingual)
+# Has caption: download → LaiCut align (JSON) → convert → translate
 omnicaptions download "https://youtube.com/watch?v=xxx"
-omnicaptions LaiCut xxx.mp4 xxx.en.vtt -o xxx_LaiCut.srt
-omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
+# → xxx.en.vtt
+omnicaptions LaiCut xxx.mp4 xxx.en.vtt
+# → xxx.en_LaiCut.json
+omnicaptions convert xxx.en_LaiCut.json -o xxx.en_LaiCut.srt
+# → xxx.en_LaiCut_Claude_zh.srt (after translate)
 
-# No caption: download → transcribe → LaiCut align → translate (bilingual)
+# No caption: download → transcribe → LaiCut align (JSON) → convert → translate
 omnicaptions download "https://youtube.com/watch?v=xxx"
 omnicaptions transcribe xxx.mp4
-omnicaptions LaiCut xxx.mp4 xxx_GeminiUnd.md -o xxx_LaiCut.srt
-omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
+# → xxx_GeminiUnd.md
+omnicaptions LaiCut xxx.mp4 xxx_GeminiUnd.md
+# → xxx_GeminiUnd_LaiCut.json
+omnicaptions convert xxx_GeminiUnd_LaiCut.json -o xxx_GeminiUnd_LaiCut.srt
+# → xxx_GeminiUnd_LaiCut_Claude_zh.srt (after translate)
 ```

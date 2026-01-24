@@ -231,33 +231,33 @@ All formats from `lattifai-captions`: SRT, VTT, ASS, TTML, JSON, Gemini MD, etc.
 
 **Important**: Generate bilingual captions AFTER LaiCut alignment.
 
-**File naming convention** - preserve the processing chain:
+**File naming convention** - preserve language tag and processing chain:
 ```
-原始文件 → _LaiCut → _Claude_zh 或 _Gemini_zh → _Color
+video.en.vtt → video.en_LaiCut.json → video.en_LaiCut.srt → video.en_LaiCut_Claude_zh.srt → video.en_LaiCut_Claude_zh_Color.ass
 ```
 
 | 翻译方式 | 后缀 | 示例 |
 |----------|------|------|
-| Claude (默认) | `_Claude_zh` | `video_LaiCut_Claude_zh.srt` |
-| Gemini API | `_Gemini_zh` | `video_LaiCut_Gemini_zh.srt` |
+| Claude (默认) | `_Claude_zh` | `video.en_LaiCut_Claude_zh.srt` |
+| Gemini API | `_Gemini_zh` | `video.en_LaiCut_Gemini_zh.srt` |
 
 ```bash
 # 1. LaiCut 对齐 (保留词级时间)
 omnicaptions LaiCut video.mp4 video.en.vtt
-# → video_LaiCut.json
+# → video.en_LaiCut.json
 
 # 2. 转换为 SRT (翻译用，文件小)
-omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
+omnicaptions convert video.en_LaiCut.json -o video.en_LaiCut.srt
 
 # 3a. Claude 翻译 (默认)
-# → video_LaiCut_Claude_zh.srt
+# → video.en_LaiCut_Claude_zh.srt
 
 # 3b. 或 Gemini 翻译
-omnicaptions translate video_LaiCut.srt -l zh --bilingual
-# → video_LaiCut_Gemini_zh.srt
+omnicaptions translate video.en_LaiCut.srt -l zh --bilingual
+# → video.en_LaiCut_Gemini_zh.srt
 
 # 4. 转换为带颜色的 ASS
-omnicaptions convert video_LaiCut_Claude_zh.srt -o video_LaiCut_Claude_zh_Color.ass \
+omnicaptions convert video.en_LaiCut_Claude_zh.srt -o video.en_LaiCut_Claude_zh_Color.ass \
   --line1-color "#00FF00" --line2-color "#FFFF00"
 ```
 
@@ -267,7 +267,7 @@ LaiCut outputs JSON with word-level timing. **For translation, convert to SRT fi
 
 ```bash
 # JSON (word-level, ~150KB) → SRT (segment-level, ~15KB)
-omnicaptions convert xxx_LaiCut.json -o xxx_LaiCut.srt
+omnicaptions convert video.en_LaiCut.json -o video.en_LaiCut.srt
 ```
 
 Why? JSON preserves word timing for karaoke, but translation only needs segment text. SRT is 10-20x smaller.

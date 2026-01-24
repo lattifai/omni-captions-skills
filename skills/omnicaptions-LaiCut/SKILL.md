@@ -84,10 +84,10 @@ JSON output preserves **word-level timing** for downstream tasks:
 Convert JSON to other formats:
 ```bash
 # For playback/editing
-omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
+omnicaptions convert video.en_LaiCut.json -o video.en_LaiCut.srt
 
 # For bilingual ASS
-omnicaptions convert video_LaiCut.json -o video_LaiCut.ass --style bilingual
+omnicaptions convert video.en_LaiCut.json -o video.en_LaiCut.ass --style bilingual
 
 # For karaoke
 omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke
@@ -96,12 +96,12 @@ omnicaptions convert lyrics_LaiCut.json -o lyrics_LaiCut_karaoke.ass --karaoke
 **For translation**: Convert to SRT first (JSON is too large for Claude to read):
 ```bash
 # 1. JSON → SRT
-omnicaptions convert video_LaiCut.json -o video_LaiCut.srt
+omnicaptions convert video.en_LaiCut.json -o video.en_LaiCut.srt
 
-# 2. Claude 翻译 → video_LaiCut_Claude_zh.srt
+# 2. Claude 翻译 → video.en_LaiCut_Claude_zh.srt
 
 # 3. 转换为带颜色 ASS
-omnicaptions convert video_LaiCut_Claude_zh.srt -o video_LaiCut_Claude_zh_Color.ass \
+omnicaptions convert video.en_LaiCut_Claude_zh.srt -o video.en_LaiCut_Claude_zh_Color.ass \
   --line1-color "#00FF00" --line2-color "#FFFF00"
 ```
 
@@ -159,15 +159,18 @@ API KEY verification error: API KEY is invalid or expired.
 ```bash
 # No caption: transcribe → align (JSON) → convert → translate
 omnicaptions transcribe video.mp4
+# → video_GeminiUnd.md
 omnicaptions LaiCut video.mp4 video_GeminiUnd.md
-# → video_GeminiUnd_LaiCut.json (word-level timing preserved)
-omnicaptions convert video_GeminiUnd_LaiCut.json -o video_LaiCut.srt
-omnicaptions translate video_LaiCut.srt -l zh --bilingual
+# → video_GeminiUnd_LaiCut.json
+omnicaptions convert video_GeminiUnd_LaiCut.json -o video_GeminiUnd_LaiCut.srt
+# → video_GeminiUnd_LaiCut_Claude_zh.srt (after translate)
 
 # Has caption: download → align (JSON) → convert → translate
 omnicaptions download "https://youtu.be/xxx"
+# → xxx.en.vtt
 omnicaptions LaiCut xxx.mp4 xxx.en.vtt
 # → xxx.en_LaiCut.json
-omnicaptions convert xxx.en_LaiCut.json -o xxx_LaiCut.srt
-omnicaptions translate xxx_LaiCut.srt -l zh --bilingual
+omnicaptions convert xxx.en_LaiCut.json -o xxx.en_LaiCut.srt
+# → xxx.en_LaiCut_Claude_zh.srt (after translate)
+# → xxx.en_LaiCut_Claude_zh_Color.ass (after convert with --style)
 ```

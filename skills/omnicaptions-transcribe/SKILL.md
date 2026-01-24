@@ -154,10 +154,13 @@ Key features:
 ```bash
 # Basic transcription
 omnicaptions transcribe video.mp4
+# → video_GeminiUnd.md
 
-# Precise timing needed: transcribe → LaiCut align
+# Precise timing needed: transcribe → LaiCut align → convert
 omnicaptions transcribe video.mp4
-omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
+omnicaptions LaiCut video.mp4 video_GeminiUnd.md
+# → video_GeminiUnd_LaiCut.json
+omnicaptions convert video_GeminiUnd_LaiCut.json -o video_GeminiUnd_LaiCut.srt
 ```
 
 > **Note**: For translation, use `/omnicaptions:translate` (default: Claude, optional: Gemini API)
