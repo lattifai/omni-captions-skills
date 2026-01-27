@@ -54,6 +54,9 @@ pip install omni-captions-skills
 # Download audio only (default, saves to current directory)
 omnicaptions download "https://www.youtube.com/watch?v=VIDEO_ID"
 
+# Supports bare YouTube video ID (auto-validates via yt-dlp)
+omnicaptions download dQw4w9WgXcQ
+
 # Download video (1080p recommended)
 omnicaptions download "https://youtube.com/watch?v=VIDEO_ID" -q 1080p
 

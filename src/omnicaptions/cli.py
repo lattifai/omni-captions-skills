@@ -343,8 +343,12 @@ def ensure_api_key(api_key: str | None = None) -> bool:
 
 
 def is_url(path: str) -> bool:
-    """Check if path is a URL."""
-    return path.startswith(("http://", "https://", "youtube.com", "youtu.be"))
+    """Check if path is a URL or a bare YouTube video ID."""
+    from .caption import is_youtube_video_id
+
+    return path.startswith(
+        ("http://", "https://", "youtube.com", "youtu.be")
+    ) or is_youtube_video_id(path)
 
 
 def get_default_output_dir(input_path: str) -> Path:
@@ -363,8 +367,13 @@ def get_stem_from_input(input_path: str) -> str:
     """Extract stem (filename without extension) from input.
 
     For URLs, extract video ID or use 'output'.
+    For bare YouTube video IDs, return the ID directly.
     For files, use the file stem.
     """
+    from .caption import is_youtube_video_id
+
+    if is_youtube_video_id(input_path):
+        return input_path
     if is_url(input_path):
         # Try to extract YouTube video ID
         import re
@@ -461,6 +470,8 @@ def cmd_transcribe(args):
 
 def cmd_download(args):
     """Download audio/video and captions from video platforms."""
+    from .caption import resolve_video_input
+
     config = GeminiCaptionConfig(verbose=args.verbose)
     gc = GeminiCaption(config=config)
 
@@ -469,8 +480,15 @@ def cmd_download(args):
 
     quality = getattr(args, "quality", "audio")
 
+    # Resolve bare video ID to full URL (validates via yt-dlp)
     try:
-        result = gc.download(args.url, output_dir, quality)
+        url = resolve_video_input(args.url)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        result = gc.download(url, output_dir, quality)
         if result.video_path:
             print(f"Video: {result.video_path}")
         if result.audio_path:
@@ -793,7 +811,7 @@ def main():
     p_download = subparsers.add_parser(
         "download", help="Download audio/video and captions from URL"
     )
-    p_download.add_argument("url", help="Video URL (YouTube, Bilibili, etc.)")
+    p_download.add_argument("url", help="Video URL or YouTube video ID (e.g. dQw4w9WgXcQ)")
     p_download.add_argument("-o", "--output", help="Output directory (default: current)")
     p_download.add_argument(
         "-q",

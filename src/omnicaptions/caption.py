@@ -50,6 +50,45 @@ VIDEO_PLATFORM_PATTERNS = [
     r"x\.com/.*/status",
 ]
 
+# YouTube video ID pattern: 11 alphanumeric chars with hyphens and underscores
+YOUTUBE_VIDEO_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{11}$")
+
+
+def is_youtube_video_id(value: str) -> bool:
+    """Check if a string looks like a bare YouTube video ID."""
+    return bool(YOUTUBE_VIDEO_ID_RE.match(value))
+
+
+def resolve_video_input(url_or_id: str) -> str:
+    """Resolve a video URL or bare YouTube video ID to a full URL.
+
+    If the input is a bare YouTube video ID, validates it via yt-dlp
+    extract_info and converts to a full URL. Otherwise returns as-is.
+
+    Raises:
+        ValueError: If the video ID does not exist or is unavailable.
+    """
+    if not is_youtube_video_id(url_or_id):
+        return url_or_id
+
+    import yt_dlp
+
+    full_url = f"https://www.youtube.com/watch?v={url_or_id}"
+    ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(full_url, download=False)
+        except yt_dlp.utils.DownloadError as e:
+            raise ValueError(f"YouTube video '{url_or_id}' not found or unavailable: {e}") from e
+        if not info:
+            raise ValueError(f"YouTube video '{url_or_id}' not found or unavailable")
+
+    logging.info(
+        "Resolved video ID '%s' → %s (title: %s)", url_or_id, full_url, info.get("title", "")
+    )
+    return full_url
+
+
 LANGUAGE_NAMES = {
     "zh": "Chinese (Simplified)",
     "zh-TW": "Chinese (Traditional)",
