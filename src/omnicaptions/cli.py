@@ -536,7 +536,10 @@ def cmd_convert(args):
         resolution_source = "default"
 
     if args.verbose:
-        print(f"Resolution: {resolution[0]}x{resolution[1]} (source: {resolution_source})", file=sys.stderr)
+        print(
+            f"Resolution: {resolution[0]}x{resolution[1]} (source: {resolution_source})",
+            file=sys.stderr,
+        )
 
     # Determine input format
     input_format = getattr(args, "from", None)  # --from is a reserved word
@@ -580,12 +583,16 @@ def cmd_convert(args):
 
     # Only create metadata if user explicitly specified ASS options or resolution
     has_resolution = resolution_str or video_file
-    has_ass_options = style_name or line1_color or line2_color or fontsize is not None or has_resolution
+    has_ass_options = (
+        style_name or line1_color or line2_color or fontsize is not None or has_resolution
+    )
     only_resolution = has_resolution and not style_name and not line1_color and not line2_color
 
     if is_ass_output and has_ass_options:
         # If only resolution/fontsize specified, try to preserve existing styles from input ASS
-        if only_resolution or (fontsize is not None and not style_name and not line1_color and not line2_color):
+        if only_resolution or (
+            fontsize is not None and not style_name and not line1_color and not line2_color
+        ):
             metadata = read_ass_styles(input_path)
             if metadata:
                 # Update fontsize and PlayRes in all styles
