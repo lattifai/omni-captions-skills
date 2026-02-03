@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "omnicaptions"
+name = "omni-captions-skills"
 version = "0.1.0"
 description = "AI-powered media transcription with Claude Code skills"
 readme = "README.md"
