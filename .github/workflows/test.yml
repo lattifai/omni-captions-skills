@@ -36,11 +36,13 @@ jobs:
           pip install -e ".[all]"
 
       - name: Test CLI entry point
+        env:
+          LATTIFAI_API_KEY: ${{ secrets.LATTIFAI_API_KEY }}
         run: |
           python -m omnicaptions --help
           omnicaptions --help
           # test LaiCut
-          lai alignment align tests/data/SA1.mp3 tests/data/SA1.vtt tests/data/SA1_LaiCut.vtt
+          lai alignment align -Y tests/data/SA1.mp3 tests/data/SA1.vtt tests/data/SA1_LaiCut.vtt
 
       - name: Run tests
         run: pytest tests/ -v

@@ -210,3 +210,4 @@ __marimo__/
 .worktrees/
 
 .DS_Store
+tests/data/SA1_LaiCut.vtt
