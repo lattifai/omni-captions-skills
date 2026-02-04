@@ -64,6 +64,15 @@ Vibe coding 就是不用自己写代码的编程方式。
 
 Standard transcription gives "approximate" timestamps. LaiCut uses [LattifAI](https://lattifai.com/) Lattice-1 model to match text precisely to audio waveforms, achieving **word-level accuracy**.
 
+**Install LaiCut:**
+```bash
+# Using uv (recommended, auto-configures package index)
+uv pip install "omni-captions-skills[laicut]"
+
+# Using pip
+pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
+```
+
 **Supported languages:** English, Chinese, German, and mixed
 
 **Recommended workflow:** Align before translate (translated text doesn't match original audio)

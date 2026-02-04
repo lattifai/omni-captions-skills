@@ -64,6 +64,15 @@ Vibe coding 就是不用自己写代码的编程方式。
 
 普通转录的时间戳只是"大概"，LaiCut 使用 [LattifAI](https://lattifai.com/) Lattice-1 模型将文本与音频波形精确匹配，实现**词级精度**。
 
+**安装 LaiCut：**
+```bash
+# 使用 uv（推荐，自动配置包索引）
+uv pip install "omni-captions-skills[laicut]"
+
+# 使用 pip
+pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
+```
+
 **支持语言：** 英语、中文、德语及混合
 
 **推荐工作流：** 先对齐再翻译（翻译文本与原始音频不匹配，无法对齐）
