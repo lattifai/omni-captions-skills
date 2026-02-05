@@ -35,7 +35,7 @@ omnicaptions convert transcript.md -o output.vtt
 ## Setup
 
 ```bash
-pip install omni-captions-skills
+pip install omni-captions-skills --extra-index-url https://lattifai.github.io/pypi/simple/
 ```
 
 ## Quick Reference

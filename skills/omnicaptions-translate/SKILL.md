@@ -41,7 +41,7 @@ Output: `input_Gemini_zh.srt`
 ## Setup
 
 ```bash
-pip install omni-captions-skills
+pip install omni-captions-skills --extra-index-url https://lattifai.github.io/pypi/simple/
 ```
 
 ## API Key

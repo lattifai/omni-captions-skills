@@ -60,7 +60,7 @@ omnicaptions transcribe video.mp4
 ## Setup
 
 ```bash
-pip install omni-captions-skills
+pip install omni-captions-skills --extra-index-url https://lattifai.github.io/pypi/simple/
 ```
 
 ## API Key

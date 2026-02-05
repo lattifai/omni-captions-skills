@@ -1,0 +1,124 @@
+name: Publish to GitHub Pages PyPI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (e.g., 0.1.2)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Build and publish to GitHub Pages
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version && format('v{0}', inputs.version) || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: python -m pip install --upgrade pip build
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            # Extract from tag: v0.1.2 -> 0.1.2
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build sdist and wheel
+        run: |
+          python -m build
+          echo "📦 Built distributions:"
+          ls -lah dist/
+
+      - name: Clone public PyPI repo
+        env:
+          PYPI_DEPLOY_KEY: ${{ secrets.PYPI_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$PYPI_DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git clone git@github.com:lattifai/pypi.git pypi-repo
+
+      - name: Update PyPI index
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PKG_NAME="omni-captions-skills"
+          PKG_UNDERSCORE="omni_captions_skills"
+
+          mkdir -p pypi-repo/wheels
+          mkdir -p pypi-repo/simple/${PKG_NAME}
+
+          # Copy distributions
+          cp dist/*.whl dist/*.tar.gz pypi-repo/wheels/
+
+          # Generate package index.html
+          cd pypi-repo
+
+          echo "📝 Generating index for ${PKG_NAME}..."
+
+          cat > simple/${PKG_NAME}/index.html << HEADER
+          <!DOCTYPE html>
+          <html>
+          <head><title>Links for ${PKG_NAME}</title></head>
+          <body>
+          <h1>Links for ${PKG_NAME}</h1>
+          HEADER
+
+          for f in wheels/${PKG_UNDERSCORE}*.whl wheels/${PKG_UNDERSCORE}*.tar.gz; do
+            if [ -f "$f" ]; then
+              filename=$(basename "$f")
+              echo "<a href=\"../../wheels/$filename\">$filename</a><br/>" >> simple/${PKG_NAME}/index.html
+            fi
+          done
+
+          cat >> simple/${PKG_NAME}/index.html << FOOTER
+          </body>
+          </html>
+          FOOTER
+
+          # Ensure omni-captions-skills is in simple/index.html
+          if ! grep -q "${PKG_NAME}" simple/index.html; then
+            sed -i "s|</body>|<a href=\"${PKG_NAME}/\">${PKG_NAME}</a><br/>\n</body>|" simple/index.html
+          fi
+
+          echo "✅ Index updated"
+
+      - name: Commit and push
+        env:
+          PYPI_DEPLOY_KEY: ${{ secrets.PYPI_DEPLOY_KEY }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd pypi-repo
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          git add -A
+          git commit -m "Add omni-captions-skills v${VERSION}" || echo "No changes to commit"
+
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git push
+
+          echo ""
+          echo "=============================================="
+          echo "✅ Published to GitHub Pages"
+          echo "=============================================="
+          echo ""
+          echo "📦 Install with:"
+          echo "   pip install omni-captions-skills==${VERSION} --extra-index-url https://lattifai.github.io/pypi/simple/"

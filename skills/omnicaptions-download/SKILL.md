@@ -43,7 +43,7 @@ Only proceed with the download command after user confirms.
 ## Setup
 
 ```bash
-pip install omni-captions-skills
+pip install omni-captions-skills --extra-index-url https://lattifai.github.io/pypi/simple/
 ```
 
 ## CLI Usage

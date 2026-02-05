@@ -67,7 +67,7 @@ Vibe coding 就是不用自己写代码的编程方式。
 **安装 LaiCut：**
 ```bash
 # 使用 uv（推荐，自动配置包索引）
-uv pip install "omni-captions-skills[laicut]"
+uv pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
 
 # 使用 pip
 pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
