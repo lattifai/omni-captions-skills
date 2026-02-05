@@ -1,7 +1,7 @@
 ---
 name: omnicaptions-convert
 description: Use when converting between caption formats (SRT, VTT, ASS, TTML, Gemini MD, etc.). Supports 30+ caption formats.
-allowed-tools: Bash(omnicaptions:*)
+allowed-tools: Read, Bash(omnicaptions:*)
 ---
 
 # Caption Format Conversion

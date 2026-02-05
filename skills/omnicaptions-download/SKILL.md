@@ -1,7 +1,7 @@
 ---
 name: omnicaptions-download
 description: Use when downloading videos, audio, or captions from YouTube and other video platforms. Supports quality selection.
-allowed-tools: Bash(omnicaptions:*)
+allowed-tools: Read, Bash(omnicaptions:*)
 ---
 
 # Download from Video Platforms

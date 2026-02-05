@@ -1,7 +1,7 @@
 ---
 name: omnicaptions-transcribe
 description: Use when transcribing audio/video to text with timestamps, speaker labels, and chapters. Supports YouTube URLs and local files. Produces structured markdown output.
-allowed-tools: Bash(omnicaptions:*)
+allowed-tools: Read, Bash(omnicaptions:*), Bash(yt-dlp:*)
 ---
 
 # Gemini Transcription
