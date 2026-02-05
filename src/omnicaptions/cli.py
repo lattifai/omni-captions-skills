@@ -709,6 +709,21 @@ def cmd_translate(args):
         sys.exit(1)
 
 
+def _detect_metadata(audio_path: Path) -> dict | None:
+    """Detect metadata from .meta.json in the same directory."""
+    import json
+
+    # Try to find meta.json based on audio filename (e.g., dQw4w9WgXcQ.m4a -> dQw4w9WgXcQ.meta.json)
+    stem = audio_path.stem
+    meta_path = audio_path.parent / f"{stem}.meta.json"
+    if meta_path.exists():
+        try:
+            return json.loads(meta_path.read_text())
+        except Exception:
+            pass
+    return None
+
+
 def cmd_laicut_align(args):
     """Align audio with caption using LattifAI forced alignment."""
     # Get API key
@@ -726,6 +741,9 @@ def cmd_laicut_align(args):
 
     audio_path = Path(args.audio)
     caption_path = Path(args.caption)
+
+    # Auto-detect metadata from .meta.json
+    metadata = _detect_metadata(audio_path)
 
     if not audio_path.exists():
         print(f"Error: Audio file not found: {audio_path}", file=sys.stderr)
@@ -770,6 +788,7 @@ def cmd_laicut_align(args):
             input_media=str(audio_path),
             input_caption=str(caption_path),
             output_caption_path=str(output_path),
+            metadata=metadata,
         )
         print(f"LaiCut aligned: {output_path}")
     except Exception as e:

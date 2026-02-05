@@ -380,10 +380,11 @@ class GeminiCaption:
             if caption_path:
                 self.logger.info(f"Downloaded caption: {caption_path}")
 
-        # Save metadata to .meta.json for later use (e.g., ASS font scaling)
+        # Save metadata to .meta.json for later use (e.g., ASS font scaling, video_url tracking)
         meta_path = output_dir / f"{video_id}.meta.json"
         meta_data = {
             "video_id": video_id,
+            "video_url": url,
             "title": title,
             "width": video_width,
             "height": video_height,
