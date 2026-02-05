@@ -352,9 +352,9 @@ class GeminiCaption:
         video_path = None
         caption_path = None
 
-        audio_exts = (".webm", ".m4a", ".mp3", ".opus", ".ogg", ".wav")
+        audio_exts = (".mp3", ".m4a", ".mp3", ".opus", ".ogg", ".wav")
         video_exts = (".mp4", ".mkv", ".avi", ".mov", ".flv")
-        caption_exts = (".vtt", ".srt", ".ass")
+        caption_exts = (".vtt", ".srt", ".ass", ".srv3")
 
         for f in output_dir.iterdir():
             # Check if filename starts with video_id

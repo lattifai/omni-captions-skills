@@ -27,7 +27,7 @@ LattifAI's audio-text processing toolkit. Currently supports forced alignment, w
 ## Setup
 
 ```bash
-pip install "omni-captions-skills[laicut]"
+pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
 ```
 
 ## API Key

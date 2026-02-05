@@ -6,6 +6,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 from lattifai.caption import Caption, GeminiReader
 
 from .caption import GeminiCaption, GeminiCaptionConfig
@@ -713,7 +720,7 @@ def _detect_metadata(audio_path: Path) -> dict | None:
     """Detect metadata from .meta.json in the same directory."""
     import json
 
-    # Try to find meta.json based on audio filename (e.g., dQw4w9WgXcQ.m4a -> dQw4w9WgXcQ.meta.json)
+    # Try to find meta.json based on audio filename (e.g., e882eXLtwkI.m4a -> e882eXLtwkI.meta.json)
     stem = audio_path.stem
     meta_path = audio_path.parent / f"{stem}.meta.json"
     if meta_path.exists():
@@ -830,7 +837,7 @@ def main():
     p_download = subparsers.add_parser(
         "download", help="Download audio/video and captions from URL"
     )
-    p_download.add_argument("url", help="Video URL or YouTube video ID (e.g. dQw4w9WgXcQ)")
+    p_download.add_argument("url", help="Video URL or YouTube video ID (e.g. e882eXLtwkI)")
     p_download.add_argument("-o", "--output", help="Output directory (default: current)")
     p_download.add_argument(
         "-q",
