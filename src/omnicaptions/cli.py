@@ -761,7 +761,7 @@ def cmd_laicut_align(args):
         sys.exit(1)
 
     from lattifai.client import LattifAI
-    from lattifai.config import AlignmentConfig, CaptionConfig, ClientConfig
+    from lattifai.config import AlignmentConfig, CaptionConfig, ClientConfig, EventConfig
 
     # Determine output path and format
     if args.output:
@@ -788,6 +788,9 @@ def cmd_laicut_align(args):
                 output_path=str(output_path),
                 split_sentence=getattr(args, "split_sentence", False),
                 word_level=word_level,
+            ),
+            event_config=EventConfig(
+                enabled=True,
             ),
         )
 

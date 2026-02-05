@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -e ".[all]"
+          pip install -e ".[all]" --extra-index-url https://lattifai.github.io/pypi/simple
 
       - name: Test CLI entry point
         env:

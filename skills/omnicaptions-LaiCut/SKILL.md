@@ -1,7 +1,7 @@
 ---
 name: omnicaptions-LaiCut
 description: Use when user needs accurate/precise caption timing, or aligning captions with audio/video using forced alignment. Corrects caption timing to match actual speech. Uses LattifAI Lattice-1 model.
-allowed-tools: Bash(omnicaptions:*)
+allowed-tools: Read, Bash(omnicaptions:*), Bash(lai:*)
 ---
 
 # LaiCut

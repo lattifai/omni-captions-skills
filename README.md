@@ -67,7 +67,7 @@ Standard transcription gives "approximate" timestamps. LaiCut uses [LattifAI](ht
 **Install LaiCut:**
 ```bash
 # Using uv (recommended, auto-configures package index)
-uv pip install "omni-captions-skills[laicut]"
+uv pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
 
 # Using pip
 pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.github.io/pypi/simple/
