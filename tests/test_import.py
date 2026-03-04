@@ -1,12 +1,12 @@
 """Test imports."""
 
 
-def test_main_class():
-    """Test GeminiCaption import."""
-    from omnicaptions import GeminiCaption, GeminiCaptionConfig
+def test_services_layer():
+    """Test services layer imports."""
+    from omnicaptions import ErrorCode, ToolResult
 
-    assert GeminiCaption is not None
-    assert GeminiCaptionConfig is not None
+    assert ToolResult is not None
+    assert ErrorCode is not None
 
 
 def test_config_functions():
@@ -36,15 +36,12 @@ def test_lattifai_reexports():
     assert GeminiSegment is not None
 
 
-def test_gemini_caption_instantiation():
-    """Test GeminiCaption can be instantiated."""
-    from omnicaptions import GeminiCaption
+def test_download_result():
+    """Test DownloadResult import."""
+    from omnicaptions import DownloadResult
 
-    gc = GeminiCaption()
-    assert gc is not None
-    assert hasattr(gc, "transcribe")
-    assert hasattr(gc, "translate")
-    assert hasattr(gc, "write")
+    r = DownloadResult()
+    assert r.video_id == ""
 
 
 def test_cli_module():

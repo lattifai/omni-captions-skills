@@ -44,7 +44,7 @@ def _output_result(result: ToolResult, as_json: bool = False):
 
 def is_url(path: str) -> bool:
     """Check if path is a URL or a bare YouTube video ID."""
-    from .caption import is_youtube_video_id
+    from .services.download import is_youtube_video_id
 
     return path.startswith(
         ("http://", "https://", "youtube.com", "youtu.be")
@@ -70,7 +70,7 @@ def get_stem_from_input(input_path: str) -> str:
     For bare YouTube video IDs, return the ID directly.
     For files, use the file stem.
     """
-    from .caption import is_youtube_video_id
+    from .services.download import is_youtube_video_id
 
     if is_youtube_video_id(input_path):
         return input_path
