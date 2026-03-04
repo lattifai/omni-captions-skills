@@ -33,32 +33,30 @@ claude --plugin-dir ./omni-captions-skills
 ## Try It
 
 ```
-❯ Make bilingual captions for this Fireship vibe coding video https://youtube.com/watch?v=Tw18-4U7mts
+> Make bilingual captions for this Fireship vibe coding video https://youtube.com/watch?v=Tw18-4U7mts
 ```
 
 ```srt
 1
 00:00:00,000 --> 00:00:03,200
 Mass hysteria satisfies a deep human need.
-群体性癔症满足了人类某种深层需求。
 
 2
 00:00:03,200 --> 00:00:07,440
 Vibe coding is programming without actually writing any code yourself.
-Vibe coding 就是不用自己写代码的编程方式。
+Vibe coding
 ```
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
-| `transcribe` | YouTube/video → Markdown with timestamps |
-| `translate` | Translate captions, bilingual output supported |
+| `pipeline` | **Full workflow**: download + transcribe + translate in one shot |
+| `transcribe` | YouTube/video -> Markdown with timestamps |
 | `convert` | Convert between 30+ caption formats |
-| `download` | Download YouTube video/audio/captions |
 | `LaiCut` | **Forced alignment, word-level timing accuracy** |
 
-> Invoke via `/omnicaptions:transcribe` or `/omnicaptions-transcribe`
+> Invoke via `/omnicaptions:pipeline` or `/omnicaptions-transcribe`
 
 ## LaiCut: Precise Timing
 
@@ -85,23 +83,51 @@ pip install "omni-captions-skills[laicut]" --extra-index-url https://lattifai.gi
 | Transcription | [Gemini API](https://aistudio.google.com/apikey) | Optional, only needed for transcription |
 | LaiCut alignment | [LattifAI API](https://lattifai.com/dashboard/api-keys) | Optional, only needed for precise alignment |
 
-> Gemini is only used for video transcription. When a video has no captions, you'll be prompted whether to transcribe — configure then. Translation uses Claude by default, works out of the box.
+> Gemini is only used for video transcription. When a video has no captions, you'll be prompted whether to transcribe -- configure then. Translation uses Claude by default, works out of the box.
 
 API keys are prompted automatically and saved to `~/.config/omnicaptions/config.json`
+
+Run `omnicaptions doctor` to verify your environment (ffmpeg, yt-dlp, API keys).
 
 ## OmniCaptions CLI Usage
 
 ```bash
-# With captions: download → align → translate
+# With captions: download -> align -> translate
 omnicaptions download "https://youtube.com/watch?v=xxx"
 omnicaptions LaiCut video.mp4 video.en.vtt -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual
 
-# Without captions: transcribe → align → translate
+# Without captions: transcribe -> align -> translate
 omnicaptions transcribe video.mp4
 omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual
+
+# Environment check
+omnicaptions doctor
 ```
+
+### JSON Output for Agents
+
+All commands support `--json` for structured output, returning a `ToolResult` object:
+
+```bash
+omnicaptions transcribe video.mp4 --json
+```
+
+```json
+{
+  "status": "success",
+  "error_code": null,
+  "message": "Transcribed to video_GeminiUnd.md",
+  "data": {"output_path": "video_GeminiUnd.md"}
+}
+```
+
+On failure, `error_code` provides a machine-readable category (e.g., `MISSING_API_KEY`, `NETWORK_TIMEOUT`).
+
+## Architecture
+
+The codebase uses a services layer (`src/omnicaptions/services/`) where each operation (download, transcribe, translate, convert, align, doctor) is an independent module returning structured `ToolResult` objects. The CLI and skills are thin wrappers around these services.
 
 ---
 Credits: [@dotey](https://x.com/dotey) for the [transcription prompt](https://x.com/dotey/status/1971810075867046131) | Built on [lattifai-captions](https://github.com/lattifai/captions)

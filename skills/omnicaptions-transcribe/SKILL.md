@@ -6,6 +6,8 @@ allowed-tools: Read, Bash(omnicaptions:*), Bash(yt-dlp:*)
 
 # Gemini Transcription
 
+> **For multi-step workflows (transcribe + translate + convert), use `/omnicaptions:pipeline` instead.**
+
 Transcribe audio/video using Google Gemini API with structured markdown output.
 
 ## YouTube Video Workflow
@@ -26,10 +28,10 @@ Transcribe audio/video using Google Gemini API with structured markdown output.
 
 ```bash
 # YouTube URL (recommended, no download needed)
-omnicaptions transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
+omnicaptions transcribe "https://www.youtube.com/watch?v=VIDEO_ID" --json
 
 # Local files
-omnicaptions transcribe video.mp4
+omnicaptions transcribe video.mp4 --json
 ```
 
 **Note**: Output defaults to current directory unless user specifies `-o`.
@@ -77,16 +79,16 @@ Then run with `-k <key>`. Key will be saved to config file automatically.
 
 ```bash
 # Transcribe (auto-output to same directory)
-omnicaptions transcribe video.mp4              # → ./video_GeminiUnd.md
-omnicaptions transcribe "https://youtu.be/abc" # → ./abc_GeminiUnd.md
+omnicaptions transcribe video.mp4 --json              # → ./video_GeminiUnd.md
+omnicaptions transcribe "https://youtu.be/abc" --json # → ./abc_GeminiUnd.md
 
 # Specify output file or directory
-omnicaptions transcribe video.mp4 -o output/   # → output/video_GeminiUnd.md
-omnicaptions transcribe video.mp4 -o my.md     # → my.md
+omnicaptions transcribe video.mp4 -o output/ --json   # → output/video_GeminiUnd.md
+omnicaptions transcribe video.mp4 -o my.md --json     # → my.md
 
 # Options
-omnicaptions transcribe -m gemini-3-pro-preview video.mp4
-omnicaptions transcribe -l zh video.mp4  # Force Chinese
+omnicaptions transcribe -m gemini-3-pro-preview video.mp4 --json
+omnicaptions transcribe -l zh video.mp4 --json  # Force Chinese
 ```
 
 | Option | Description |
@@ -104,7 +106,7 @@ omnicaptions transcribe -l zh video.mp4  # Force Chinese
 If user requests bilingual output, add `-t <lang> --bilingual`:
 
 ```bash
-omnicaptions transcribe video.mp4 -t zh --bilingual
+omnicaptions transcribe video.mp4 -t zh --bilingual --json
 ```
 
 For precise timing, use separate workflow: transcribe → LaiCut → translate (see Related Skills).

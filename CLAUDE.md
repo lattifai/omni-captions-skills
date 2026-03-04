@@ -14,16 +14,24 @@ omni-captions-skills/
 │   ├── plugin.json          # Plugin manifest (required)
 │   └── marketplace.json     # Marketplace distribution
 ├── skills/
-│   ├── omnicaptions-transcribe/SKILL.md
-│   ├── omnicaptions-convert/SKILL.md
-│   ├── omnicaptions-translate/SKILL.md
-│   ├── omnicaptions-download/SKILL.md
-│   └── omnicaptions-LaiCut/SKILL.md
+│   ├── omnicaptions-pipeline/SKILL.md    # Primary: download+transcribe+translate
+│   ├── omnicaptions-transcribe/SKILL.md  # Specialized: transcription only
+│   ├── omnicaptions-convert/SKILL.md     # Specialized: format conversion
+│   └── omnicaptions-LaiCut/SKILL.md      # Specialized: forced alignment
 ├── src/omnicaptions/
 │   ├── __init__.py          # Exports
-│   ├── caption.py           # GeminiCaption class
-│   ├── cli.py               # CLI entry point
+│   ├── caption.py           # GeminiCaption class (legacy, wraps services)
+│   ├── cli.py               # CLI entry point (all commands support --json)
 │   ├── config.py            # API key management
+│   ├── services/
+│   │   ├── __init__.py      # Exports ToolResult, ErrorCode
+│   │   ├── base.py          # ToolResult dataclass, ErrorCode enum
+│   │   ├── download.py      # YouTube download via yt-dlp
+│   │   ├── transcribe.py    # Gemini-based transcription
+│   │   ├── translate.py     # Caption translation
+│   │   ├── convert.py       # Format conversion (30+ formats)
+│   │   ├── align.py         # LattifAI forced alignment
+│   │   └── doctor.py        # Preflight environment check
 │   └── prompts/
 │       └── transcription_dotey.md
 └── pyproject.toml
@@ -31,21 +39,36 @@ omni-captions-skills/
 
 ## Key Classes
 
-- `GeminiCaption`: Main class with `transcribe()` and `translate()` methods
-- `GeminiCaptionConfig`: Configuration dataclass
+- `ToolResult`: Structured return type from all services (`status`, `message`, `data`, `error_code`). Supports `.to_json()`.
+- `ErrorCode`: Enum of machine-readable error categories (MISSING_API_KEY, NETWORK_TIMEOUT, etc.)
+- `GeminiCaption`: Legacy class with `transcribe()` and `translate()` methods. Still works but services layer is preferred.
 - From `lattifai-captions`: `Caption`, `GeminiReader`, `GeminiWriter`
 - From `lattifai`: `LattifAI` client for forced alignment (via `omnicaptions[alignment]`)
 
 ## CLI
 
 ```bash
-# All commands support -o for output file/directory (optional, defaults to input dir)
-omnicaptions transcribe <input> [-o output] [-m model] [-l lang] [-t lang --bilingual]
-omnicaptions convert <input> [-o output] [-f fmt] [-t fmt]
-omnicaptions translate <input> [-o output] -l <lang> [--bilingual]
-omnicaptions download <url> [-o output] [-q quality]
-omnicaptions LaiCut <audio> <caption> [-o output] [-f format] [-k api-key] [-v]
+# All commands support -o for output and --json for structured JSON output
+omnicaptions transcribe <input> [-o output] [-m model] [-l lang] [-t lang --bilingual] [--json]
+omnicaptions convert <input> [-o output] [-f fmt] [-t fmt] [--json]
+omnicaptions translate <input> [-o output] -l <lang> [--bilingual] [--json]
+omnicaptions download <url> [-o output] [-q quality] [--json]
+omnicaptions LaiCut <audio> <caption> [-o output] [-f format] [-k api-key] [-v] [--json]
+omnicaptions doctor [--json]    # Preflight check: ffmpeg, yt-dlp, API keys
 ```
+
+The `--json` flag outputs `ToolResult` as JSON, designed for agent consumption.
+
+## Skills
+
+| Skill | Type | Description |
+|-------|------|-------------|
+| `pipeline` | Primary | Full workflow: download + transcribe + translate |
+| `transcribe` | Specialized | YouTube/video transcription only |
+| `LaiCut` | Specialized | Forced alignment with word-level timing |
+| `convert` | Specialized | Format conversion between 30+ caption formats |
+
+> `download` and `translate` skills were removed — absorbed into the `pipeline` skill.
 
 ## Development
 
@@ -105,9 +128,9 @@ Your skill instructions here...
 
 | Config | User invoke | Claude invoke | Context |
 |--------|-------------|---------------|---------|
-| (default) | ✓ | ✓ | Description always; full on invoke |
-| `disable-model-invocation: true` | ✓ | ✗ | Manual only |
-| `user-invocable: false` | ✗ | ✓ | Background knowledge |
+| (default) | Y | Y | Description always; full on invoke |
+| `disable-model-invocation: true` | Y | N | Manual only |
+| `user-invocable: false` | N | Y | Background knowledge |
 
 ### String Substitutions
 

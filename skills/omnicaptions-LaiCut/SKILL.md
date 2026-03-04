@@ -6,6 +6,8 @@ allowed-tools: Read, Bash(omnicaptions:*), Bash(lai:*)
 
 # LaiCut
 
+> **For multi-step workflows, use `/omnicaptions:pipeline` instead.**
+
 LattifAI's audio-text processing toolkit. Currently supports forced alignment, with translate and speaker diarization coming soon.
 
 **Requires LattifAI API Key** - Get from https://lattifai.com/dashboard/api-keys
@@ -42,14 +44,14 @@ Then run with `-k <key>`. Key will be saved to config file automatically.
 
 ```bash
 # Basic alignment (default: JSON with word-level timing, RECOMMENDED)
-omnicaptions LaiCut audio.mp3 caption.srt
+omnicaptions LaiCut audio.mp3 caption.srt --json
 # → caption_LaiCut.json
 
 # Then convert to desired format (preserves word timing in JSON for future use)
-omnicaptions convert caption_LaiCut.json -o caption_LaiCut.srt
+omnicaptions convert caption_LaiCut.json -o caption_LaiCut.srt --json
 
 # Smart sentence segmentation (for word-level captions like YouTube VTT)
-omnicaptions LaiCut video.mp4 caption.vtt --split-sentence
+omnicaptions LaiCut video.mp4 caption.vtt --split-sentence --json
 ```
 
 | Option | Description |

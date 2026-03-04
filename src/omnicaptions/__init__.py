@@ -16,6 +16,7 @@ from lattifai.caption import (
 )
 
 from .caption import DownloadResult, GeminiCaption, GeminiCaptionConfig
+from .services import ErrorCode, ToolResult
 from .config import (
     clear_gemini_api_key,
     get_config_path,
@@ -33,6 +34,9 @@ __all__ = [
     "GeminiCaption",
     "GeminiCaptionConfig",
     "DownloadResult",
+    # Services layer
+    "ErrorCode",
+    "ToolResult",
     # Gemini API key management
     "get_gemini_api_key",
     "set_gemini_api_key",

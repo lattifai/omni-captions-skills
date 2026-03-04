@@ -6,6 +6,8 @@ allowed-tools: Read, Bash(omnicaptions:*)
 
 # Caption Format Conversion
 
+> **For multi-step workflows, use `/omnicaptions:pipeline` instead.**
+
 Convert between 30+ caption/caption formats using `lattifai-captions`.
 
 ## ⚡ YouTube Workflow
@@ -56,15 +58,15 @@ Full list: SRT, VTT, ASS, SSA, TTML, DFXP, SBV, SUB, LRC, JSON, TXT, TSV, Audaci
 
 ```bash
 # Convert (auto-output to same directory, only changes extension)
-omnicaptions convert input.srt -t vtt           # → ./input.vtt
-omnicaptions convert transcript.md              # → ./transcript.srt
+omnicaptions convert input.srt -t vtt --json           # → ./input.vtt
+omnicaptions convert transcript.md --json              # → ./transcript.srt
 
 # Specify output file or directory
-omnicaptions convert input.srt -o output/       # → output/input.srt
-omnicaptions convert input.srt -o output.vtt    # → output.vtt
+omnicaptions convert input.srt -o output/ --json       # → output/input.srt
+omnicaptions convert input.srt -o output.vtt --json    # → output.vtt
 
 # Specify format explicitly
-omnicaptions convert input.txt -o out.srt -f txt -t srt
+omnicaptions convert input.txt -o out.srt -f txt -t srt --json
 ```
 
 ## ASS Style Presets
