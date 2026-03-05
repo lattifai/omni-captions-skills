@@ -103,6 +103,30 @@ omnicaptions LaiCut video.mp4 video_GeminiUnd.md -o video_LaiCut.srt
 omnicaptions translate video_LaiCut.srt -l zh --bilingual
 ```
 
+## MCP Server
+
+支持作为 [MCP](https://modelcontextprotocol.io/) 服务端，接入 Claude Desktop、Cursor 等 MCP 客户端。
+
+**安装：**
+```bash
+pip install "omni-captions-skills[mcp]"
+```
+
+**Claude Desktop** — 添加到 `~/Library/Application Support/Claude/claude_desktop_config.json`：
+```json
+{
+  "mcpServers": {
+    "omnicaptions": {
+      "command": "omnicaptions-mcp"
+    }
+  }
+}
+```
+
+**可用工具：** `doctor`、`download`、`transcribe`、`check_captions`、`translate`、`convert`、`forced_align`
+
+也支持 SSE 传输：`omnicaptions-mcp --transport sse --port 8080`
+
 ---
 Credits: [@dotey](https://x.com/dotey) 的[转录提示词](https://x.com/dotey/status/1971810075867046131) | 基于 [lattifai-captions](https://github.com/lattifai/captions)
 

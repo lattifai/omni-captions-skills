@@ -82,7 +82,9 @@ def resolve_video_input(url_or_id: str) -> str:
         if not info:
             raise ValueError(f"YouTube video '{url_or_id}' not found or unavailable")
 
-    logger.info("Resolved video ID '%s' -> %s (title: %s)", url_or_id, full_url, info.get("title", ""))
+    logger.info(
+        "Resolved video ID '%s' -> %s (title: %s)", url_or_id, full_url, info.get("title", "")
+    )
     return full_url
 
 

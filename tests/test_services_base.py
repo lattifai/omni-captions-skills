@@ -1,7 +1,5 @@
 """Tests for omnicaptions.services.base module."""
 
-import pytest
-
 from omnicaptions.services.base import ErrorCode, ToolResult
 
 

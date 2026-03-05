@@ -18,7 +18,6 @@ from .config import (
 )
 from .services.base import ToolResult
 
-
 # =============================================================================
 # Output helpers
 # =============================================================================
@@ -465,9 +464,7 @@ def main():
     p_laicut.set_defaults(func=cmd_laicut_align)
 
     # Doctor
-    p_doctor = subparsers.add_parser(
-        "doctor", help="Check environment dependencies and API keys"
-    )
+    p_doctor = subparsers.add_parser("doctor", help="Check environment dependencies and API keys")
     p_doctor.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     p_doctor.set_defaults(func=cmd_doctor)
 

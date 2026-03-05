@@ -1,7 +1,7 @@
 """Tests for omnicaptions.services.download module."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -12,7 +12,6 @@ from omnicaptions.services.download import (
     is_video_platform_url,
     is_youtube_video_id,
 )
-
 
 # ---------------------------------------------------------------------------
 # DownloadResult

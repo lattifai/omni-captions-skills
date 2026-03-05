@@ -11,6 +11,7 @@ from typing import Optional
 
 from omnicaptions.config import LATTIFAI_API_KEY_URL, get_lattifai_api_key
 from omnicaptions.services.base import ErrorCode, ToolResult
+from omnicaptions.services.download import download_media, is_youtube_video_id
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,36 @@ def forced_align(
             error_code=ErrorCode.MISSING_API_KEY,
         )
 
+    # Check if audio is a URL or YouTube video ID
+    is_url = str(audio).startswith(("http://", "https://"))
+    is_vid_id = is_youtube_video_id(str(audio))
+
+    if is_url or is_vid_id:
+        # Download media first
+        import tempfile
+
+        dl_dir = tempfile.mkdtemp(prefix="lattifai_")
+        dl_result = download_media(
+            url=str(audio),
+            output_dir=dl_dir,
+            quality="audio",
+            verbose=verbose,
+        )
+        if dl_result.status == "error":
+            return ToolResult(
+                status="error",
+                message=f"Failed to download audio: {dl_result.message}",
+                error_code=ErrorCode.DOWNLOAD_FAILED,
+            )
+        # Use downloaded audio path
+        audio = dl_result.data.get("audio_path") or dl_result.data.get("video_path")
+        if not audio:
+            return ToolResult(
+                status="error",
+                message="Download succeeded but no audio/video file found",
+                error_code=ErrorCode.DOWNLOAD_FAILED,
+            )
+
     # Validate input files
     audio_path = Path(audio)
     if not audio_path.exists():
@@ -88,9 +119,7 @@ def forced_align(
         output_path = Path(output)
     else:
         suffix = f".{output_format}"
-        output_path = caption_path.with_stem(f"{caption_path.stem}_LaiCut").with_suffix(
-            suffix
-        )
+        output_path = caption_path.with_stem(f"{caption_path.stem}_LaiCut").with_suffix(suffix)
 
     # Enable word_level for JSON output to preserve word timing
     is_json_output = str(output_path).lower().endswith(".json")
@@ -112,8 +141,7 @@ def forced_align(
         return ToolResult(
             status="error",
             message=(
-                "lattifai package not installed. "
-                "Install with: pip install omnicaptions[alignment]"
+                "lattifai package not installed. Install with: pip install omnicaptions[alignment]"
             ),
             error_code=ErrorCode.MISSING_DEPENDENCY,
         )

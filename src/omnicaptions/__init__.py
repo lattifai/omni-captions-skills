@@ -13,8 +13,6 @@ from lattifai.caption import (
     GeminiWriter,
 )
 
-from .services import ErrorCode, ToolResult
-from .services.download import DownloadResult
 from .config import (
     clear_gemini_api_key,
     get_config_path,
@@ -25,6 +23,8 @@ from .config import (
     set_gemini_api_key,
     set_lattifai_api_key,
 )
+from .services import ErrorCode, ToolResult
+from .services.download import DownloadResult
 
 __version__ = "0.2.0"
 __all__ = [

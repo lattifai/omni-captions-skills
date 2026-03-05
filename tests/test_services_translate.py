@@ -1,10 +1,7 @@
 """Tests for omnicaptions.services.translate module."""
 
-import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from omnicaptions.services.base import ErrorCode, ToolResult
 from omnicaptions.services.translate import (
@@ -12,7 +9,6 @@ from omnicaptions.services.translate import (
     _build_translate_prompt,
     translate_caption,
 )
-
 
 # ---------------------------------------------------------------------------
 # API key / file validation
@@ -106,15 +102,12 @@ def test_translate_returns_tool_result(mock_batch, mock_key, tmp_path):
     """Successful translation should return ToolResult with correct data."""
     # Create a temp SRT file from the SA1.vtt content
     srt_content = (
-        "1\n"
-        "00:00:00,480 --> 00:00:03,980\n"
-        "She had your dark suit in greasy wash water all year.\n"
+        "1\n00:00:00,480 --> 00:00:03,980\nShe had your dark suit in greasy wash water all year.\n"
     )
     srt_file = tmp_path / "SA1.srt"
     srt_file.write_text(srt_content, encoding="utf-8")
 
     # Mock the async batch translate to return a translated string
-    import asyncio
 
     async def fake_batch(*args, **kwargs):
         return ["Elle avait votre costume sombre dans l'eau de lavage grasse toute l'annee."]

@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from omnicaptions.services.base import ErrorCode, ToolResult
 from omnicaptions.services.convert import (
     calculate_fontsize,

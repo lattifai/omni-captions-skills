@@ -3,14 +3,12 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from omnicaptions.services.base import ErrorCode, ToolResult
 from omnicaptions.services.transcribe import (
+    check_existing_captions,
     get_transcription_prompt,
     transcribe_media,
 )
-
 
 # ---------------------------------------------------------------------------
 # get_transcription_prompt
@@ -145,3 +143,70 @@ def test_transcribe_success_explicit_output(mock_run, mock_key, tmp_path):
     assert result.status == "success"
     assert result.data["output_path"] == out
     assert Path(out).read_text() == "Hello world"
+
+
+# ---------------------------------------------------------------------------
+# check_existing_captions
+# ---------------------------------------------------------------------------
+
+
+@patch("yt_dlp.YoutubeDL")
+def test_check_existing_captions_with_manual(mock_ydl_cls):
+    """Should detect manual captions and recommend download."""
+    mock_ydl = MagicMock()
+    mock_ydl_cls.return_value.__enter__ = MagicMock(return_value=mock_ydl)
+    mock_ydl_cls.return_value.__exit__ = MagicMock(return_value=False)
+    mock_ydl.extract_info.return_value = {
+        "subtitles": {"en": [], "zh": []},
+        "automatic_captions": {"en": [], "ja": []},
+        "title": "Test Video",
+    }
+
+    result = check_existing_captions("https://www.youtube.com/watch?v=test123")
+    assert result.status == "success"
+    assert result.data["has_manual_captions"] is True
+    assert result.data["recommendation"] == "download"
+    assert "en" in result.data["manual_languages"]
+
+
+@patch("yt_dlp.YoutubeDL")
+def test_check_existing_captions_auto_only(mock_ydl_cls):
+    """Should detect auto-only captions and recommend transcribe."""
+    mock_ydl = MagicMock()
+    mock_ydl_cls.return_value.__enter__ = MagicMock(return_value=mock_ydl)
+    mock_ydl_cls.return_value.__exit__ = MagicMock(return_value=False)
+    mock_ydl.extract_info.return_value = {
+        "subtitles": {},
+        "automatic_captions": {"en": [], "ja": []},
+        "title": "Test Video",
+    }
+
+    result = check_existing_captions("https://www.youtube.com/watch?v=test123")
+    assert result.status == "success"
+    assert result.data["has_manual_captions"] is False
+    assert result.data["has_auto_captions"] is True
+    assert result.data["recommendation"] == "transcribe"
+
+
+def test_check_existing_captions_missing_ytdlp():
+    """Should return MISSING_DEPENDENCY when yt-dlp not installed."""
+    import builtins
+    import sys
+
+    original_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "yt_dlp":
+            raise ImportError("No module named 'yt_dlp'")
+        return original_import(name, *args, **kwargs)
+
+    try:
+        saved = sys.modules.pop("yt_dlp", None)
+        builtins.__import__ = mock_import
+        result = check_existing_captions("https://www.youtube.com/watch?v=test123")
+        assert result.status == "error"
+        assert result.error_code == ErrorCode.MISSING_DEPENDENCY
+    finally:
+        builtins.__import__ = original_import
+        if saved:
+            sys.modules["yt_dlp"] = saved

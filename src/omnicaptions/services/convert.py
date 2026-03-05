@@ -469,9 +469,7 @@ def convert_caption(
     )
 
     has_resolution = resolution or video_file
-    has_ass_options = (
-        style or line1_color or line2_color or fontsize is not None or has_resolution
-    )
+    has_ass_options = style or line1_color or line2_color or fontsize is not None or has_resolution
     only_resolution = has_resolution and not style and not line1_color and not line2_color
 
     if is_ass_output and has_ass_options:
@@ -492,9 +490,7 @@ def convert_caption(
                         actual_fontsize,
                     )
             else:
-                metadata = build_ass_metadata(
-                    "default", actual_fontsize, resolved_resolution
-                )
+                metadata = build_ass_metadata("default", actual_fontsize, resolved_resolution)
                 if verbose:
                     logger.info(
                         "ASS style: default, resolution: %dx%d, fontsize: %d",
@@ -508,9 +504,7 @@ def convert_caption(
                 if style
                 else ASS_STYLE_PRESETS["default"]
             )
-            metadata = build_ass_metadata(
-                style or "default", actual_fontsize, resolved_resolution
-            )
+            metadata = build_ass_metadata(style or "default", actual_fontsize, resolved_resolution)
             if verbose:
                 logger.info(
                     "ASS style: %s, resolution: %dx%d, fontsize: %d",
@@ -522,9 +516,7 @@ def convert_caption(
 
             # Override with custom colors
             if line1_color:
-                metadata["ass_styles"]["Default"]["primarycolor"] = hex_to_ass_color(
-                    line1_color
-                )
+                metadata["ass_styles"]["Default"]["primarycolor"] = hex_to_ass_color(line1_color)
                 if verbose:
                     logger.info("Line 1 color: %s", line1_color)
 

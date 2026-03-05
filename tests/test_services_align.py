@@ -1,14 +1,10 @@
 """Tests for omnicaptions.services.align module."""
 
 import json
-from pathlib import Path
 from unittest.mock import patch
-
-import pytest
 
 from omnicaptions.services.align import _detect_metadata, forced_align
 from omnicaptions.services.base import ErrorCode, ToolResult
-
 
 # ---------------------------------------------------------------------------
 # API key / file validation
@@ -41,9 +37,7 @@ def test_align_caption_not_found(mock_key, tmp_path):
     audio_file = tmp_path / "audio.wav"
     audio_file.write_bytes(b"\x00" * 100)
 
-    result = forced_align(
-        audio=str(audio_file), caption="/nonexistent/caption.srt"
-    )
+    result = forced_align(audio=str(audio_file), caption="/nonexistent/caption.srt")
     assert result.status == "error"
     assert result.error_code == ErrorCode.INVALID_INPUT
     assert "Caption file not found" in result.message
@@ -58,17 +52,22 @@ def test_align_default_output_format_is_json(mock_key, tmp_path):
     caption_file.write_text("1\n00:00:00,000 --> 00:00:01,000\nHello\n")
 
     # Mock the lattifai import so we don't need the actual package
-    with patch.dict("sys.modules", {
-        "lattifai": __import__("types").ModuleType("lattifai"),
-        "lattifai.client": __import__("types").ModuleType("lattifai.client"),
-        "lattifai.config": __import__("types").ModuleType("lattifai.config"),
-    }), patch("omnicaptions.services.align.LattifAI", create=True) as mock_cls:
+    with (
+        patch.dict(
+            "sys.modules",
+            {
+                "lattifai": __import__("types").ModuleType("lattifai"),
+                "lattifai.client": __import__("types").ModuleType("lattifai.client"),
+                "lattifai.config": __import__("types").ModuleType("lattifai.config"),
+            },
+        ),
+        patch("omnicaptions.services.align.LattifAI", create=True) as mock_cls,
+    ):
         # We need to re-import after patching sys.modules, so patch directly
-        import importlib
-        import omnicaptions.services.align as align_mod
-
         # Patch the imports at module level by mocking the try/except block
         from unittest.mock import MagicMock
+
+        import omnicaptions.services.align as align_mod
 
         mock_client = MagicMock()
         mock_cls.return_value = mock_client
@@ -156,3 +155,78 @@ def test_align_missing_lattifai_dependency(mock_key, tmp_path):
     finally:
         builtins.__import__ = original_import
         sys.modules.update(saved_modules)
+
+
+# ---------------------------------------------------------------------------
+# URL / YouTube video ID input
+# ---------------------------------------------------------------------------
+
+
+@patch("omnicaptions.services.align.get_lattifai_api_key", return_value="fake-key")
+@patch("omnicaptions.services.align.download_media")
+def test_align_url_input_downloads_audio(mock_download, mock_key, tmp_path):
+    """URL input should trigger download before alignment."""
+    # Setup: create fake downloaded audio
+    audio_file = tmp_path / "audio.m4a"
+    audio_file.write_bytes(b"\x00" * 100)
+    caption_file = tmp_path / "caption.srt"
+    caption_file.write_text("1\n00:00:00,000 --> 00:00:01,000\nHello\n")
+
+    mock_download.return_value = ToolResult(
+        status="success",
+        message="Downloaded",
+        data={"audio_path": str(audio_file), "video_path": None},
+    )
+
+    result = forced_align(
+        audio="https://www.youtube.com/watch?v=abc12345678",
+        caption=str(caption_file),
+    )
+    mock_download.assert_called_once()
+    # Result depends on whether lattifai is installed
+    assert result.status == "error"  # MISSING_DEPENDENCY or ALIGNMENT_FAILED
+    assert result.error_code in (ErrorCode.MISSING_DEPENDENCY, ErrorCode.ALIGNMENT_FAILED)
+
+
+@patch("omnicaptions.services.align.get_lattifai_api_key", return_value="fake-key")
+@patch("omnicaptions.services.align.download_media")
+def test_align_url_download_failure(mock_download, mock_key, tmp_path):
+    """URL download failure should return DOWNLOAD_FAILED."""
+    caption_file = tmp_path / "caption.srt"
+    caption_file.write_text("1\n00:00:00,000 --> 00:00:01,000\nHello\n")
+
+    mock_download.return_value = ToolResult(
+        status="error",
+        message="Network error",
+        error_code=ErrorCode.DOWNLOAD_FAILED,
+    )
+
+    result = forced_align(
+        audio="https://www.youtube.com/watch?v=abc12345678",
+        caption=str(caption_file),
+    )
+    assert result.status == "error"
+    assert result.error_code == ErrorCode.DOWNLOAD_FAILED
+    assert "download" in result.message.lower()
+
+
+@patch("omnicaptions.services.align.get_lattifai_api_key", return_value="fake-key")
+@patch("omnicaptions.services.align.download_media")
+def test_align_youtube_video_id_input(mock_download, mock_key, tmp_path):
+    """Bare YouTube video ID should trigger download."""
+    audio_file = tmp_path / "audio.m4a"
+    audio_file.write_bytes(b"\x00" * 100)
+    caption_file = tmp_path / "caption.srt"
+    caption_file.write_text("1\n00:00:00,000 --> 00:00:01,000\nHello\n")
+
+    mock_download.return_value = ToolResult(
+        status="success",
+        message="Downloaded",
+        data={"audio_path": str(audio_file), "video_path": None},
+    )
+
+    forced_align(
+        audio="e882eXLtwkI",
+        caption=str(caption_file),
+    )
+    mock_download.assert_called_once()

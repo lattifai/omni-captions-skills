@@ -58,10 +58,10 @@ def _build_translate_prompt(
 
     if bilingual:
         instruction = (
-            f'Translate captions to {lang_name}. Return JSON array with '
+            f"Translate captions to {lang_name}. Return JSON array with "
             f'"original" and "translated" keys.\n\n'
             f"Rules:\n"
-            f"1. ONLY translate the lines in \"to_translate\" - context is for reference only\n"
+            f'1. ONLY translate the lines in "to_translate" - context is for reference only\n'
             f"2. Maintain speaker voice and tone consistency\n"
             f"3. Handle split sentences naturally (context helps understand full meaning)\n"
             f"4. Adapt idioms and cultural references appropriately\n"
@@ -71,7 +71,7 @@ def _build_translate_prompt(
         instruction = (
             f"Translate captions to {lang_name}. Return JSON array of translated strings.\n\n"
             f"Rules:\n"
-            f"1. ONLY translate the lines in \"to_translate\" - context is for reference only\n"
+            f'1. ONLY translate the lines in "to_translate" - context is for reference only\n'
             f"2. Maintain speaker voice and tone consistency\n"
             f"3. Handle split sentences naturally (context helps understand full meaning)\n"
             f"4. Adapt idioms and cultural references appropriately\n"
@@ -115,9 +115,7 @@ async def _translate_batch_async(
     from google.genai.types import GenerateContentConfig
 
     client = genai.Client(api_key=api_key)
-    prompt = _build_translate_prompt(
-        texts, target_lang, bilingual, context_before, context_after
-    )
+    prompt = _build_translate_prompt(texts, target_lang, bilingual, context_before, context_after)
 
     config = GenerateContentConfig(response_mime_type="application/json")
 
@@ -192,11 +190,7 @@ async def _translate_file_async(
         # Extract context before and after current batch
         ctx_before = texts[max(0, i - context_lines) : i] if i > 0 else None
         batch_end = i + batch_size
-        ctx_after = (
-            texts[batch_end : batch_end + context_lines]
-            if batch_end < len(texts)
-            else None
-        )
+        ctx_after = texts[batch_end : batch_end + context_lines] if batch_end < len(texts) else None
 
         if verbose:
             logger.info(
@@ -217,9 +211,7 @@ async def _translate_file_async(
             translated = results[idx].get("translated", "")
             sup.text = f"{original}\n{translated}"
         else:
-            sup.text = (
-                results[idx] if isinstance(results[idx], str) else results[idx]
-            )
+            sup.text = results[idx] if isinstance(results[idx], str) else results[idx]
 
     # Write output -- use GeminiWriter for .md files
     if output_path.suffix.lower() == ".md":

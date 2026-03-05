@@ -13,7 +13,16 @@ def test_convert_json_output(tmp_path):
     """Test convert with --json produces valid JSON output."""
     output = tmp_path / "out.srt"
     result = subprocess.run(
-        [sys.executable, "-m", "omnicaptions", "convert", str(TEST_VTT_FILE), "-o", str(output), "--json"],
+        [
+            sys.executable,
+            "-m",
+            "omnicaptions",
+            "convert",
+            str(TEST_VTT_FILE),
+            "-o",
+            str(output),
+            "--json",
+        ],
         capture_output=True,
         text=True,
     )

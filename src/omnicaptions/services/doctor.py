@@ -2,8 +2,9 @@
 
 import shutil
 
-from .base import ToolResult
 from omnicaptions.config import get_gemini_api_key, get_lattifai_api_key
+
+from .base import ToolResult
 
 
 def run_doctor(verbose: bool = False) -> ToolResult:

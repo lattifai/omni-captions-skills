@@ -125,6 +125,30 @@ omnicaptions transcribe video.mp4 --json
 
 On failure, `error_code` provides a machine-readable category (e.g., `MISSING_API_KEY`, `NETWORK_TIMEOUT`).
 
+## MCP Server
+
+Use omnicaptions as an [MCP](https://modelcontextprotocol.io/) server with Claude Desktop, Cursor, or any MCP client.
+
+**Install:**
+```bash
+pip install "omni-captions-skills[mcp]"
+```
+
+**Claude Desktop** — add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "omnicaptions": {
+      "command": "omnicaptions-mcp"
+    }
+  }
+}
+```
+
+**Available tools:** `doctor`, `download`, `transcribe`, `check_captions`, `translate`, `convert`, `forced_align`
+
+SSE transport is also supported: `omnicaptions-mcp --transport sse --port 8080`
+
 ## Architecture
 
 The codebase uses a services layer (`src/omnicaptions/services/`) where each operation (download, transcribe, translate, convert, align, doctor) is an independent module returning structured `ToolResult` objects. The CLI and skills are thin wrappers around these services.

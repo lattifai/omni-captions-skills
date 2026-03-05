@@ -167,9 +167,7 @@ def _run_transcription(
     Returns:
         Transcription text.
     """
-    return asyncio.run(
-        _transcribe_async(url_or_path, api_key=api_key, model=model, **kwargs)
-    )
+    return asyncio.run(_transcribe_async(url_or_path, api_key=api_key, model=model, **kwargs))
 
 
 def _generate_output_path(input_path: str) -> Path:
@@ -191,6 +189,81 @@ def _generate_output_path(input_path: str) -> Path:
         stem = Path(input_path).stem
 
     return Path(f"{stem}_GeminiUnd.md")
+
+
+def _is_youtube_url(url: str) -> bool:
+    """Check if a string looks like a YouTube URL."""
+    return bool(_YT_URL_RE.search(url))
+
+
+def check_existing_captions(url: str, verbose: bool = False) -> ToolResult:
+    """Check if a video URL has existing captions available for download.
+
+    Useful for deciding whether to transcribe (expensive) or download (free).
+
+    Args:
+        url: YouTube or other video URL to check.
+        verbose: Enable verbose logging.
+
+    Returns:
+        ToolResult with data containing has_manual_captions, has_auto_captions,
+        manual_languages, auto_languages, recommendation, and title.
+    """
+    try:
+        import yt_dlp
+    except ImportError:
+        return ToolResult(
+            status="error",
+            message="yt-dlp not installed. Install with: pip install yt-dlp",
+            error_code=ErrorCode.MISSING_DEPENDENCY,
+        )
+
+    try:
+        ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+        subtitles = info.get("subtitles", {})
+        auto_captions = info.get("automatic_captions", {})
+
+        manual_langs = list(subtitles.keys())
+        auto_langs = [k for k in auto_captions.keys() if not k.startswith("live_chat")]
+
+        has_manual = len(manual_langs) > 0
+        has_auto = len(auto_langs) > 0
+
+        recommendation = "download" if has_manual else "transcribe"
+
+        if verbose:
+            logger.info(
+                "Caption check: manual=%d, auto=%d, recommend=%s",
+                len(manual_langs),
+                len(auto_langs),
+                recommendation,
+            )
+
+        return ToolResult(
+            status="success",
+            message=(
+                f"Manual captions: {len(manual_langs)}, "
+                f"Auto captions: {len(auto_langs)}. "
+                f"Recommend: {recommendation}"
+            ),
+            data={
+                "has_manual_captions": has_manual,
+                "has_auto_captions": has_auto,
+                "manual_languages": manual_langs[:20],
+                "auto_languages": auto_langs[:20],
+                "recommendation": recommendation,
+                "title": info.get("title", ""),
+            },
+        )
+    except Exception as e:
+        return ToolResult(
+            status="error",
+            message=f"Failed to check captions: {e}",
+            error_code=ErrorCode.NETWORK_TIMEOUT,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -271,12 +344,23 @@ def transcribe_media(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(text, encoding="utf-8")
 
+    result_data = {
+        "output_path": str(output_path),
+        "text": text[:500],
+        "char_count": len(text),
+    }
+
+    # Add caption detection info for YouTube URLs (informational only)
+    if is_url and _is_youtube_url(input_path):
+        try:
+            cap_result = check_existing_captions(input_path, verbose=verbose)
+            if cap_result.status == "success":
+                result_data["existing_captions"] = cap_result.data
+        except Exception:
+            pass  # Caption detection is best-effort
+
     return ToolResult(
         status="success",
         message=f"Transcription saved to {output_path}",
-        data={
-            "output_path": str(output_path),
-            "text": text[:500],
-            "char_count": len(text),
-        },
+        data=result_data,
     )

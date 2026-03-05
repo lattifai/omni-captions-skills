@@ -22,6 +22,7 @@ omni-captions-skills/
 │   ├── __init__.py          # Exports
 │   ├── caption.py           # GeminiCaption class (legacy, wraps services)
 │   ├── cli.py               # CLI entry point (all commands support --json)
+│   ├── mcp_server.py        # MCP Server (Claude Desktop / Cursor integration)
 │   ├── config.py            # API key management
 │   ├── services/
 │   │   ├── __init__.py      # Exports ToolResult, ErrorCode
@@ -69,6 +70,47 @@ The `--json` flag outputs `ToolResult` as JSON, designed for agent consumption.
 | `convert` | Specialized | Format conversion between 30+ caption formats |
 
 > `download` and `translate` skills were removed — absorbed into the `pipeline` skill.
+
+## MCP Server
+
+Exposes all services as MCP tools for Claude Desktop, Cursor, and other MCP clients.
+
+```bash
+# Install
+pip install -e ".[mcp]"
+
+# Run (stdio, default)
+omnicaptions-mcp
+
+# Run (SSE)
+omnicaptions-mcp --transport sse --port 8080
+```
+
+### Claude Desktop Configuration
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "omnicaptions": {
+      "command": "omnicaptions-mcp"
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `doctor` | Check environment dependencies and API keys |
+| `download` | Download media from YouTube/video platforms |
+| `transcribe` | Transcribe audio/video to text with timestamps |
+| `check_captions` | Check if a URL has existing captions |
+| `translate` | Translate caption files |
+| `convert` | Convert between 30+ caption formats |
+| `forced_align` | LattifAI forced alignment for precise timing |
 
 ## Development
 
