@@ -1,9 +1,15 @@
 """MCP Server for omnicaptions - thin wrapper over the services layer."""
 
+from __future__ import annotations
+
+import inspect
 import json
-import sys
+from dataclasses import dataclass
+from typing import Callable
 
 from omnicaptions.services.base import ToolResult
+
+MCP_INSTALL_HINT = "pip install 'omni-captions-skills[mcp]'"
 
 
 def _to_mcp(result: ToolResult) -> str:
@@ -15,9 +21,66 @@ def _to_mcp(result: ToolResult) -> str:
     return text
 
 
+@dataclass
+class _RegisteredTool:
+    """Registered MCP tool metadata."""
+
+    name: str
+    description: str
+    fn: Callable
+
+
+class _ToolManager:
+    """Minimal tool manager API used by tests and wrappers."""
+
+    def __init__(self):
+        self._tools: dict[str, _RegisteredTool] = {}
+
+    def add_tool(self, fn: Callable):
+        description = inspect.getdoc(fn) or ""
+        self._tools[fn.__name__] = _RegisteredTool(
+            name=fn.__name__,
+            description=description,
+            fn=fn,
+        )
+
+    def list_tools(self) -> list[_RegisteredTool]:
+        return list(self._tools.values())
+
+
+class _FastMCPFallback:
+    """Fallback MCP server used when `mcp` package is not installed."""
+
+    def __init__(self, name: str):
+        self.name = name
+        self._tool_manager = _ToolManager()
+
+    def tool(self):
+        def _decorator(fn: Callable):
+            self._tool_manager.add_tool(fn)
+            return fn
+
+        return _decorator
+
+    def run(self, *args, **kwargs):
+        raise RuntimeError(
+            f"The `mcp` package is required to run the MCP server. Install with: {MCP_INSTALL_HINT}"
+        )
+
+
+def _load_fastmcp():
+    """Load FastMCP from mcp package, or a local fallback for tests/dev."""
+    try:
+        from mcp.server.fastmcp import FastMCP
+
+        return FastMCP
+    except ImportError:
+        return _FastMCPFallback
+
+
 def create_server():
     """Create and configure the MCP server with all tools."""
-    from mcp.server.fastmcp import FastMCP
+    FastMCP = _load_fastmcp()
 
     mcp = FastMCP(name="omnicaptions")
 
@@ -174,10 +237,13 @@ def main():
 
     server = create_server()
 
-    if args.transport == "sse":
-        server.run(transport="sse", sse_params={"port": args.port})
-    else:
-        server.run(transport="stdio")
+    try:
+        if args.transport == "sse":
+            server.run(transport="sse", sse_params={"port": args.port})
+        else:
+            server.run(transport="stdio")
+    except RuntimeError as exc:
+        parser.exit(1, f"Error: {exc}\n")
 
 
 if __name__ == "__main__":

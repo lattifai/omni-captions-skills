@@ -5,9 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from omnicaptions.mcp_server import _to_mcp, create_server
+from omnicaptions.mcp_server import MCP_INSTALL_HINT, _to_mcp, create_server
 from omnicaptions.services.base import ErrorCode, ToolResult
-
 
 # --- _to_mcp tests ---
 
@@ -71,7 +70,9 @@ class TestDownloadTool:
         result = tool_fn(url="https://youtube.com/watch?v=test")
         parsed = json.loads(result)
         assert parsed["status"] == "success"
-        mock_dl.assert_called_once_with(url="https://youtube.com/watch?v=test", output_dir=None, quality="audio")
+        mock_dl.assert_called_once_with(
+            url="https://youtube.com/watch?v=test", output_dir=None, quality="audio"
+        )
 
     @patch("omnicaptions.services.download.download_media")
     def test_download_error(self, mock_dl, mcp):
@@ -172,13 +173,30 @@ class TestListTools:
     def test_server_has_seven_tools(self, mcp):
         tools = mcp._tool_manager.list_tools()
         names = {t.name for t in tools}
-        expected = {"doctor", "download", "transcribe", "check_captions", "translate", "convert", "forced_align"}
+        expected = {
+            "doctor",
+            "download",
+            "transcribe",
+            "check_captions",
+            "translate",
+            "convert",
+            "forced_align",
+        }
         assert names == expected
 
     def test_tools_have_descriptions(self, mcp):
         tools = mcp._tool_manager.list_tools()
         for tool in tools:
             assert tool.description, f"Tool {tool.name} has no description"
+
+
+class TestFallbackBehavior:
+    def test_run_raises_install_hint_without_mcp_dependency(self, mcp):
+        with pytest.raises(RuntimeError) as exc_info:
+            mcp.run(transport="stdio")
+        message = str(exc_info.value)
+        assert "mcp" in message.lower()
+        assert MCP_INSTALL_HINT in message
 
 
 # --- Helper ---

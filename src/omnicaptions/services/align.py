@@ -140,9 +140,7 @@ def forced_align(
     except ImportError:
         return ToolResult(
             status="error",
-            message=(
-                "lattifai package not installed. Install with: pip install omnicaptions[alignment]"
-            ),
+            message="lattifai package not installed. Install with: pip install 'omni-captions-skills[laicut]'",
             error_code=ErrorCode.MISSING_DEPENDENCY,
         )
 

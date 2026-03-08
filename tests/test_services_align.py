@@ -152,6 +152,7 @@ def test_align_missing_lattifai_dependency(mock_key, tmp_path):
         assert result.status == "error"
         assert result.error_code == ErrorCode.MISSING_DEPENDENCY
         assert "lattifai" in result.message.lower()
+        assert "omni-captions-skills[laicut]" in result.message
     finally:
         builtins.__import__ = original_import
         sys.modules.update(saved_modules)

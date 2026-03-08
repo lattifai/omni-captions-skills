@@ -1,5 +1,8 @@
 """Test imports."""
 
+import re
+from pathlib import Path
+
 
 def test_services_layer():
     """Test services layer imports."""
@@ -49,3 +52,14 @@ def test_cli_module():
     from omnicaptions.cli import main
 
     assert callable(main)
+
+
+def test_package_version_matches_pyproject():
+    """Package __version__ should match pyproject.toml."""
+    import omnicaptions
+
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    content = pyproject.read_text()
+    match = re.search(r'^version = "([^"]+)"$', content, re.MULTILINE)
+    assert match is not None
+    assert omnicaptions.__version__ == match.group(1)
