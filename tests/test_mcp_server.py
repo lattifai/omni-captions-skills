@@ -170,7 +170,7 @@ class TestForcedAlignTool:
 
 
 class TestListTools:
-    def test_server_has_seven_tools(self, mcp):
+    def test_server_has_eight_tools(self, mcp):
         tools = mcp._tool_manager.list_tools()
         names = {t.name for t in tools}
         expected = {
@@ -181,6 +181,7 @@ class TestListTools:
             "translate",
             "convert",
             "forced_align",
+            "pipeline",
         }
         assert names == expected
 

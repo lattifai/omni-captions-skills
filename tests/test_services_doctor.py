@@ -66,6 +66,7 @@ def test_doctor_cli_human():
         capture_output=True,
         text=True,
     )
-    # Should show check names
-    assert "ffmpeg" in result.stdout
-    assert "yt-dlp" in result.stdout
+    # Rich output goes to stderr
+    output = result.stdout + result.stderr
+    assert "ffmpeg" in output
+    assert "yt-dlp" in output

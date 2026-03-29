@@ -134,3 +134,80 @@ Then either:
 1. Set environment variable: export LATTIFAI_API_KEY=your-key
 2. Pass directly: omnicaptions LaiCut --api-key your-key
 """
+
+
+# ==================== Config Management ====================
+
+# Key name mapping: user-friendly -> internal
+KEY_MAP = {
+    "gemini_api_key": "GEMINI_API_KEY",
+    "lattifai_api_key": "LATTIFAI_API_KEY",
+}
+
+
+def mask_key(key: str, visible_prefix: int = 4, visible_suffix: int = 4) -> str:
+    """Mask an API key for display: 'AIza...7x9Q'"""
+    if not key:
+        return ""
+    if len(key) <= visible_prefix + visible_suffix + 3:
+        return "****"
+    return f"{key[:visible_prefix]}...{key[-visible_suffix:]}"
+
+
+def _resolve_key(env_name: str) -> tuple[str, str]:
+    """Resolve a config key value and its source.
+
+    Checks in priority order:
+    1. Environment variable (source = "environment")
+    2. .env file via python-dotenv (source = "dotenv")
+    3. Config file ~/.config/omnicaptions/config.json (source = "config")
+    4. Not found (source = "not set")
+
+    Returns:
+        (value, source) tuple
+    """
+    # 1. Check environment variable before dotenv
+    pre_dotenv = os.environ.get(env_name)
+    if pre_dotenv:
+        return pre_dotenv, "environment"
+
+    # 2. Load .env (if available) and check again
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(override=False)
+    except ImportError:
+        pass
+
+    post_dotenv = os.environ.get(env_name)
+    if post_dotenv:
+        return post_dotenv, "dotenv"
+
+    # 3. User config file
+    config = load_config()
+    val = config.get(env_name)
+    if val:
+        return val, "config"
+
+    # 4. Not found
+    return "", "not set"
+
+
+def list_config() -> dict[str, dict]:
+    """Return config listing with source info.
+
+    Returns dict like:
+    {
+        "gemini_api_key": {"value": "AIza...7x9Q", "source": "config", "set": True},
+        "lattifai_api_key": {"value": "", "source": "not set", "set": False},
+    }
+    """
+    result = {}
+    for friendly_name, env_name in KEY_MAP.items():
+        value, source = _resolve_key(env_name)
+        result[friendly_name] = {
+            "value": mask_key(value) if value else "",
+            "source": source,
+            "set": bool(value),
+        }
+    return result

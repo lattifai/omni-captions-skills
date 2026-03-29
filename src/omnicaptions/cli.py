@@ -13,10 +13,14 @@ except ImportError:
     pass
 
 from .config import (
+    KEY_MAP,
     get_gemini_api_key,
+    list_config,
+    mask_key,
     set_gemini_api_key,
+    set_lattifai_api_key,
 )
-from .services.base import ToolResult
+from .services.base import ErrorCode, ToolResult
 
 # =============================================================================
 # Output helpers
@@ -28,10 +32,12 @@ def _output_result(result: ToolResult, as_json: bool = False):
     if as_json:
         print(json.dumps(result.to_json(), ensure_ascii=False))
     else:
+        from .ui import print_error, print_success
+
         if result.status == "success":
-            print(result.message)
+            print_success(result.message)
         else:
-            print(f"Error: {result.message}", file=sys.stderr)
+            print_error(result.message)
     if result.status == "error":
         sys.exit(1)
 
@@ -139,16 +145,19 @@ def cmd_transcribe(args):
     if not output and not args.translate:
         output = str(generate_output_path(args.input, args.output, "GeminiUnd", ".md"))
 
-    result = transcribe_media(
-        input_path=args.input,
-        output=output,
-        api_key=api_key or get_gemini_api_key(),
-        model=args.model,
-        language=args.language,
-        use_thinking=not args.no_thinking,
-        custom_prompt=args.prompt,
-        verbose=args.verbose,
-    )
+    from .ui import step_spinner
+
+    with step_spinner("Transcribing...", as_json=as_json):
+        result = transcribe_media(
+            input_path=args.input,
+            output=output,
+            api_key=api_key or get_gemini_api_key(),
+            model=args.model,
+            language=args.language,
+            use_thinking=not args.no_thinking,
+            custom_prompt=args.prompt,
+            verbose=args.verbose,
+        )
 
     # If --translate specified and transcription succeeded, translate too
     if args.translate and result.status == "success":
@@ -187,12 +196,15 @@ def cmd_download(args):
     output_dir = args.output if args.output else str(Path.cwd())
     quality = getattr(args, "quality", "audio")
 
-    result = download_media(
-        url=args.url,
-        output_dir=output_dir,
-        quality=quality,
-        verbose=args.verbose,
-    )
+    from .ui import step_spinner
+
+    with step_spinner("Downloading...", as_json=as_json):
+        result = download_media(
+            url=args.url,
+            output_dir=output_dir,
+            quality=quality,
+            verbose=args.verbose,
+        )
 
     if as_json:
         _output_result(result, as_json=True)
@@ -259,15 +271,18 @@ def cmd_translate(args):
         generate_output_path(args.input, args.output, f"Gemini_{args.language}", ext)
     )
 
-    result = translate_caption(
-        input_file=args.input,
-        target_lang=args.language,
-        output=output,
-        bilingual=args.bilingual,
-        api_key=api_key or get_gemini_api_key(),
-        model=args.model,
-        verbose=args.verbose,
-    )
+    from .ui import step_spinner
+
+    with step_spinner("Translating...", as_json=as_json):
+        result = translate_caption(
+            input_file=args.input,
+            target_lang=args.language,
+            output=output,
+            bilingual=args.bilingual,
+            api_key=api_key or get_gemini_api_key(),
+            model=args.model,
+            verbose=args.verbose,
+        )
 
     _output_result(result, as_json=as_json)
 
@@ -281,13 +296,14 @@ def cmd_doctor(args):
     if getattr(args, "json", False):
         _output_result(result, as_json=True)
     else:
+        from .ui import print_table
+
+        rows = []
         for check in result.data.get("checks", []):
-            status_icon = "ok" if check["status"] == "ok" else "MISSING"
-            print(f"  {status_icon} {check['name']}: {check['status']}")
-            if check.get("help"):
-                print(f"    -> {check['help']}")
-        print()
-        print(result.message)
+            status_str = "[green]ok[/green]" if check["status"] == "ok" else "[red]MISSING[/red]"
+            help_str = check.get("help") or ""
+            rows.append([check["name"], status_str, help_str])
+        print_table(["Check", "Status", "Help"], rows)
         if result.status == "error":
             sys.exit(1)
 
@@ -312,6 +328,110 @@ def cmd_laicut_align(args):
     )
 
     _output_result(result, as_json=as_json)
+
+
+def cmd_pipeline(args):
+    """Run the full pipeline: URL -> bilingual subtitles."""
+    from .services.pipeline import PipelineConfig, run_pipeline
+    from .ui import step_progress
+
+    as_json = getattr(args, "json", False)
+
+    steps = ["download", "transcribe", "align", "translate", "convert"]
+    tracker = step_progress(steps, as_json=as_json)
+
+    def on_step(name: str, status: str):
+        tracker.advance(name, status)
+
+    config = PipelineConfig(
+        url=args.url,
+        target_lang=getattr(args, "language", "zh"),
+        output_format=getattr(args, "format", "srt"),
+        output_dir=getattr(args, "output", None),
+        bilingual=getattr(args, "bilingual", True),
+        style=getattr(args, "style", None),
+        model=getattr(args, "model", "gemini-3-flash-preview"),
+        quality=getattr(args, "quality", "audio"),
+        skip_align=getattr(args, "no_align", False),
+        skip_translate=getattr(args, "no_translate", False),
+        gemini_api_key=getattr(args, "api_key", None) or get_gemini_api_key(),
+        lattifai_api_key=getattr(args, "lattifai_key", None),
+        verbose=getattr(args, "verbose", False),
+        on_step=on_step,
+    )
+
+    result = run_pipeline(config)
+    _output_result(result, as_json=as_json)
+
+
+def cmd_config(args):
+    """Manage configuration (show / set / get)."""
+    as_json = getattr(args, "json", False)
+    action = args.config_action
+
+    if action == "show":
+        config_data = list_config()
+        if as_json:
+            result = ToolResult(
+                status="success",
+                message="Configuration listing",
+                data=config_data,
+            )
+            _output_result(result, as_json=True)
+        else:
+            print("OmniCaptions Configuration:")
+            print("-" * 50)
+            for name, info in config_data.items():
+                status = "SET" if info["set"] else "NOT SET"
+                value_display = info["value"] if info["set"] else "-"
+                print(f"  {name:<20} {status:<10} {value_display:<20} (source: {info['source']})")
+
+    elif action == "set":
+        friendly_key = args.key.lower()
+        if friendly_key not in KEY_MAP:
+            result = ToolResult(
+                status="error",
+                message=f"Unknown config key: {args.key}. Valid keys: {', '.join(KEY_MAP.keys())}",
+                error_code=ErrorCode.INVALID_INPUT,
+            )
+            _output_result(result, as_json=as_json)
+            return
+        env_name = KEY_MAP[friendly_key]
+        if env_name == "GEMINI_API_KEY":
+            set_gemini_api_key(args.value)
+        elif env_name == "LATTIFAI_API_KEY":
+            set_lattifai_api_key(args.value)
+        result = ToolResult(
+            status="success",
+            message=f"Saved {friendly_key} to config file ({mask_key(args.value)})",
+            data={"key": friendly_key, "masked_value": mask_key(args.value)},
+        )
+        _output_result(result, as_json=as_json)
+
+    elif action == "get":
+        friendly_key = args.key.lower()
+        if friendly_key not in KEY_MAP:
+            result = ToolResult(
+                status="error",
+                message=f"Unknown config key: {args.key}. Valid keys: {', '.join(KEY_MAP.keys())}",
+                error_code=ErrorCode.INVALID_INPUT,
+            )
+            _output_result(result, as_json=as_json)
+            return
+        config_data = list_config()
+        info = config_data[friendly_key]
+        if as_json:
+            result = ToolResult(
+                status="success",
+                message=f"{friendly_key}: {info['value']} (source: {info['source']})",
+                data={friendly_key: info},
+            )
+            _output_result(result, as_json=True)
+        else:
+            if info["set"]:
+                print(f"{friendly_key}: {info['value']} (source: {info['source']})")
+            else:
+                print(f"{friendly_key}: not set")
 
 
 # =============================================================================
@@ -468,8 +588,61 @@ def main():
     p_doctor.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     p_doctor.set_defaults(func=cmd_doctor)
 
+    # Pipeline
+    p_pipeline = subparsers.add_parser("pipeline", help="URL to bilingual subtitles in one command")
+    p_pipeline.add_argument("url", help="Video URL or YouTube video ID")
+    p_pipeline.add_argument("-l", "--language", default="zh", help="Target language (default: zh)")
+    p_pipeline.add_argument("-f", "--format", default="srt", help="Output format (srt, ass, vtt)")
+    p_pipeline.add_argument("-o", "--output", help="Output directory")
+    p_pipeline.add_argument("-k", "--api-key", dest="api_key", help="Gemini API key")
+    p_pipeline.add_argument("--lattifai-key", dest="lattifai_key", help="LattifAI API key")
+    p_pipeline.add_argument("-m", "--model", default="gemini-3-flash-preview", help="Model name")
+    p_pipeline.add_argument(
+        "-q",
+        "--quality",
+        default="audio",
+        choices=["audio", "best", "1080p", "720p", "480p", "360p"],
+        help="Download quality (default: audio)",
+    )
+    p_pipeline.add_argument(
+        "--bilingual", action="store_true", default=True, help="Bilingual output (default)"
+    )
+    p_pipeline.add_argument("--no-bilingual", dest="bilingual", action="store_false")
+    p_pipeline.add_argument(
+        "--style",
+        choices=["default", "top", "bilingual", "yellow"],
+        help="ASS style preset",
+    )
+    p_pipeline.add_argument("--no-align", action="store_true", help="Skip forced alignment")
+    p_pipeline.add_argument("--no-translate", action="store_true", help="Skip translation")
+    p_pipeline.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+    p_pipeline.set_defaults(func=cmd_pipeline)
+
+    # Config
+    p_config = subparsers.add_parser("config", help="Manage configuration")
+    config_sub = p_config.add_subparsers(dest="config_action", required=True)
+
+    p_config_show = config_sub.add_parser("show", help="Show all configuration")
+    p_config_set = config_sub.add_parser("set", help="Set a config value")
+    p_config_set.add_argument("key", help="Config key (GEMINI_API_KEY, LATTIFAI_API_KEY)")
+    p_config_set.add_argument("value", help="Value to set")
+    p_config_get = config_sub.add_parser("get", help="Get a config value")
+    p_config_get.add_argument("key", help="Config key (GEMINI_API_KEY, LATTIFAI_API_KEY)")
+    p_config.set_defaults(func=cmd_config)
+
     # Add --json flag to every subparser
-    for p in [p_transcribe, p_download, p_convert, p_translate, p_laicut, p_doctor]:
+    for p in [
+        p_transcribe,
+        p_download,
+        p_convert,
+        p_translate,
+        p_laicut,
+        p_doctor,
+        p_pipeline,
+        p_config_show,
+        p_config_set,
+        p_config_get,
+    ]:
         p.add_argument(
             "--json", action="store_true", help="Output as JSON (for agent/script consumption)"
         )

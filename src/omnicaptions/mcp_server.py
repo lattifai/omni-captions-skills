@@ -218,6 +218,43 @@ def create_server():
             _forced_align(audio=audio, caption=caption, output=output, output_format=output_format)
         )
 
+    @mcp.tool()
+    def pipeline(
+        url: str,
+        target_lang: str = "zh",
+        output_format: str = "srt",
+        output_dir: str | None = None,
+        bilingual: bool = True,
+        style: str | None = None,
+        skip_align: bool = False,
+        skip_translate: bool = False,
+    ) -> str:
+        """Full pipeline: download, transcribe, align, translate, and convert captions.
+
+        Args:
+            url: Video URL or YouTube video ID.
+            target_lang: Target language code (default: "zh").
+            output_format: Output format (default: "srt"). Options: srt, ass, vtt.
+            output_dir: Directory to save files. Uses current dir if not specified.
+            bilingual: Include original text alongside translation.
+            style: ASS style preset (default, top, bilingual, yellow).
+            skip_align: Skip the forced alignment step.
+            skip_translate: Skip the translation step.
+        """
+        from omnicaptions.services.pipeline import PipelineConfig, run_pipeline
+
+        config = PipelineConfig(
+            url=url,
+            target_lang=target_lang,
+            output_format=output_format,
+            output_dir=output_dir,
+            bilingual=bilingual,
+            style=style,
+            skip_align=skip_align,
+            skip_translate=skip_translate,
+        )
+        return _to_mcp(run_pipeline(config))
+
     return mcp
 
 

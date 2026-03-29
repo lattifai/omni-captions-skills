@@ -23,10 +23,12 @@ omni-captions-skills/
 │   ├── caption.py           # GeminiCaption class (legacy, wraps services)
 │   ├── cli.py               # CLI entry point (all commands support --json)
 │   ├── mcp_server.py        # MCP Server (Claude Desktop / Cursor integration)
-│   ├── config.py            # API key management
+│   ├── config.py            # API key management (show/set/get via CLI)
+│   ├── ui.py                # Rich console helpers (spinner, table, progress)
 │   ├── services/
 │   │   ├── __init__.py      # Exports ToolResult, ErrorCode
 │   │   ├── base.py          # ToolResult dataclass, ErrorCode enum
+│   │   ├── pipeline.py      # Pipeline orchestration (download→transcribe→align→translate→convert)
 │   │   ├── download.py      # YouTube download via yt-dlp
 │   │   ├── transcribe.py    # Gemini-based transcription
 │   │   ├── translate.py     # Caption translation
@@ -50,12 +52,14 @@ omni-captions-skills/
 
 ```bash
 # All commands support -o for output and --json for structured JSON output
+omnicaptions pipeline <url> [-l lang] [-f fmt] [--no-align] [--no-translate] [--json]
 omnicaptions transcribe <input> [-o output] [-m model] [-l lang] [-t lang --bilingual] [--json]
 omnicaptions convert <input> [-o output] [-f fmt] [-t fmt] [--json]
 omnicaptions translate <input> [-o output] -l <lang> [--bilingual] [--json]
 omnicaptions download <url> [-o output] [-q quality] [--json]
 omnicaptions LaiCut <audio> <caption> [-o output] [-f format] [-k api-key] [-v] [--json]
 omnicaptions doctor [--json]    # Preflight check: ffmpeg, yt-dlp, API keys
+omnicaptions config show|set|get [--json]  # Manage API keys
 ```
 
 The `--json` flag outputs `ToolResult` as JSON, designed for agent consumption.
@@ -111,6 +115,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 | `translate` | Translate caption files |
 | `convert` | Convert between 30+ caption formats |
 | `forced_align` | LattifAI forced alignment for precise timing |
+| `pipeline` | Full pipeline: download, transcribe, align, translate, convert |
 
 ## Development
 

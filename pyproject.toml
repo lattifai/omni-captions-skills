@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "google-genai>=1.0.0",
     "lattifai-captions>=0.1.6",
+    "rich>=13.0.0",
     "yt-dlp>=2025.12.08",
 ]
 
