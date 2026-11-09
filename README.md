@@ -8,6 +8,8 @@
 
 [中文文档](README_zh.md)
 
+> **Related product:** [EdgeSpeak](https://edgespeak.com) is a separate desktop application for local transcription, translation, and subtitle export, with a local API and MCP tools for agents.
+
 ## Install
 
 ```bash

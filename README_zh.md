@@ -8,6 +8,8 @@
 >
 > 就这一句，Claude 帮你搞定下载、转录、翻译。
 
+相关产品：[EdgeSpeak](https://edgespeak.com/zh) 是独立的桌面应用，支持本地转录、翻译和字幕导出，并为 Agent 提供本地 API 和 MCP 工具。
+
 ## 安装
 
 ```bash
